@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+﻿using System.Linq;
 using System.Web.Mvc;
+using WorkTracker.Models;
 
 namespace WorkTracker.Controllers
 {
@@ -10,6 +8,10 @@ namespace WorkTracker.Controllers
     {
         public ActionResult Index()
         {
+            using (var db = new DbModels())
+            {
+                var users = db.Users.ToList();
+            }
             return View();
         }
 
