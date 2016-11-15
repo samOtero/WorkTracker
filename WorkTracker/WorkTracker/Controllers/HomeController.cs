@@ -48,6 +48,7 @@ namespace WorkTracker.Controllers
                         if (currentUser != null)
                         {
                             var userID = currentUser.Id;
+                            var userEmail = currentUser.Email;
                             Session[WorkTracker.Models.User.ID] = userID;
                         }
                     }
