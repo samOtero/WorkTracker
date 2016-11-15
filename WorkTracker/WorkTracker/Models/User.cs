@@ -18,16 +18,12 @@ namespace WorkTracker.Models
             Notifications = new HashSet<Notification>();
             UserRoles = new HashSet<UserRole>();
         }
-
+        public static string ID = "myId";
         public int Id { get; set; }
 
         [Required]
         [StringLength(50)]
         public string Email { get; set; }
-
-        [Required]
-        [StringLength(10)]
-        public string Password { get; set; }
 
         [Required]
         [StringLength(50)]
@@ -36,6 +32,9 @@ namespace WorkTracker.Models
         [Required]
         [StringLength(50)]
         public string LastName { get; set; }
+
+        [Required]
+        public string AspNetUserId { get; set; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ItemConversation> ItemConversations { get; set; }

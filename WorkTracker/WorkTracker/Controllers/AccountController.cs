@@ -9,6 +9,8 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using WorkTracker.Models;
+using WorkTracker.Enums;
+using static WorkTracker.Enums.UserEnums;
 
 namespace WorkTracker.Controllers
 {
@@ -157,11 +159,27 @@ namespace WorkTracker.Controllers
                 {
                     await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
                     
-                    // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
-                    // Send an email with this link
-                    // string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
-                    // var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
-                    // await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
+                    //Create User DB object and connect to ASP Identity
+                    using (var dbContext = new DbModels())
+                    {
+                        var newUser = new User()
+                        {
+                            AspNetUserId = user.Id,
+                            Email = user.Email,
+                            FirstName = model.FirstName,
+                            LastName = model.LastName
+                        };
+                        dbContext.Users.Add(newUser);
+                        dbContext.SaveChanges(); //Save here so we can get the proper userId
+                        var newUserRole = new UserRole()
+                        {
+                            userId = newUser.Id,
+                            roleId = (int)UserRoles.Employee //default to employee
+                        };
+                        dbContext.UserRoles.Add(newUserRole);
+                        dbContext.SaveChanges();
+                        Session[WorkTracker.Models.User.ID] = newUser.Id; //Save UserID into Session variable for later use
+                    }
 
                     return RedirectToAction("Index", "Home");
                 }
@@ -392,6 +410,7 @@ namespace WorkTracker.Controllers
         public ActionResult LogOff()
         {
             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+            Session[WorkTracker.Models.User.ID] = null;
             return RedirectToAction("Index", "Home");
         }
 

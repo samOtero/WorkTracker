@@ -69,6 +69,10 @@ namespace WorkTracker.Models
         [Display(Name = "Email")]
         public string Email { get; set; }
 
+        [Display(Name = "Confirm email")]
+        [Compare("Email", ErrorMessage = "The email and confirmation email do not match.")]
+        public string ConfirmEmail { get; set; }
+
         [Required]
         [StringLength(100, ErrorMessage = "The {0} must be at least {2} characters long.", MinimumLength = 6)]
         [DataType(DataType.Password)]
@@ -79,6 +83,16 @@ namespace WorkTracker.Models
         [Display(Name = "Confirm password")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; }
+
+        [Required]
+        [Display(Name = "First Name")]
+        public string FirstName { get; set; }
+
+        [Required]
+        [Display(Name = "Last Name")]
+        public string LastName { get; set; }
+
+
     }
 
     public class ResetPasswordViewModel

@@ -10,7 +10,7 @@ namespace WorkTracker.Models
         public DbModels()
             : base("name=DefaultConnection")
         {
-            this.Configuration.LazyLoadingEnabled = false;
+            Configuration.LazyLoadingEnabled = false;
         }
 
         public virtual DbSet<Feature> Features { get; set; }
@@ -64,10 +64,6 @@ namespace WorkTracker.Models
                 .HasMany(e => e.UserRoles)
                 .WithRequired(e => e.Role)
                 .WillCascadeOnDelete(false);
-
-            modelBuilder.Entity<User>()
-                .Property(e => e.Password)
-                .IsFixedLength();
 
             modelBuilder.Entity<User>()
                 .HasMany(e => e.ItemConversations)
