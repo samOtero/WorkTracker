@@ -68,6 +68,7 @@ namespace WorkTracker.Controllers
             notificationModel.myNotifications.Add(notification2);
             var result = addNumbersSam(200, 10);
             //notification1.Note = result.ToString();
+            notification1.Id = 2;
             return View(notificationModel);
         }
 
