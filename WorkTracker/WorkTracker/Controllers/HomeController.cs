@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNet.Identity;
+using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 using WorkTracker.Models;
@@ -54,7 +55,26 @@ namespace WorkTracker.Controllers
                     }
                 }
             }
-            return View();
+            //Create a list of my notifications
+            var notificationModel = new NotificationModel();
+            notificationModel.myNotifications = new List<Notification>();
+            //Create fake notifications for testing
+            var notification1 = new Notification();
+            notification1.Note = "Jairo created new work item needs approval";
+            var notification2 = new Notification();
+            notification2.Note = "Rodrigo approved a Work Item";
+            //Add fake notifications to model list
+            notificationModel.myNotifications.Add(notification1);
+            notificationModel.myNotifications.Add(notification2);
+            var result = addNumbersSam(200, 10);
+            //notification1.Note = result.ToString();
+            return View(notificationModel);
+        }
+
+        public int addNumbersSam(int firstNumber, int secondNumber)
+        {
+            var sum = firstNumber + secondNumber;
+            return sum;
         }
     }
 }
