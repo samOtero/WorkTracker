@@ -18,25 +18,32 @@ namespace WorkTracker.Models
         public int Id { get; set; }
 
         [Required]
+        [Display(Name = "Work Item Name")]
         public string Name { get; set; }
 
         [Column(TypeName = "money")]
+        [Display(Name = "Work Cost")]
         public decimal Cost { get; set; }
 
+        [Display(Name = "Work Date")]
         public DateTimeOffset ItemDate { get; set; }
 
+        [Display(Name = "Estimated Hours")]
         public int Hours { get; set; }
 
         public bool Paid { get; set; }
 
         public int Status { get; set; }
-
+        
+        //User ID
         public int CreatedBy { get; set; }
 
         public DateTimeOffset CreatedOn { get; set; }
 
         public DateTimeOffset ModifiedOn { get; set; }
 
+        //User ID
+        [Display(Name = "Work Assigned To")]
         public int AssignedTo { get; set; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

@@ -36,6 +36,9 @@ namespace WorkTracker.Models
         [Required]
         public string AspNetUserId { get; set; }
 
+        [NotMapped]
+        public string FullName { get; set; }
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ItemConversation> ItemConversations { get; set; }
 

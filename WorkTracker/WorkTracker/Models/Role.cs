@@ -8,6 +8,13 @@ namespace WorkTracker.Models
 
     public partial class Role
     {
+        public enum RoleTypes
+        {
+            Owner=1,
+            Employee=2,
+            Admin = 3
+        }
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Role()
         {
