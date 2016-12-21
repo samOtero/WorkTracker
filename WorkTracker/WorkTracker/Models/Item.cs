@@ -8,6 +8,7 @@ namespace WorkTracker.Models
 
     public partial class Item
     {
+        
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Item()
         {
@@ -34,6 +35,8 @@ namespace WorkTracker.Models
         public bool Paid { get; set; }
 
         public int Status { get; set; }
+
+        public int WorkStatus { get; set; }
         
         //User ID
         public int CreatedBy { get; set; }
@@ -53,6 +56,8 @@ namespace WorkTracker.Models
         public virtual ICollection<ItemHistory> ItemHistories { get; set; }
 
         public virtual ItemStatus ItemStatu { get; set; }
+
+        public virtual WorkItemStatus WorkItemStatu { get; set; }
 
         public virtual User User { get; set; }
 

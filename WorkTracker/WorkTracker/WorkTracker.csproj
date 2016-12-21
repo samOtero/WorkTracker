@@ -206,6 +206,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\CreateViewModel.cs" />
+    <Compile Include="Models\WorkItemStatus.cs" />
     <Compile Include="Models\NotificationModel.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\Feature.cs" />

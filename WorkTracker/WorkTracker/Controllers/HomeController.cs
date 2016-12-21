@@ -26,28 +26,60 @@ namespace WorkTracker.Controllers
 
         public JsonResult CreateWorkItem(CreateViewModel input)
         {
-            //Validation Goes Here - Work In Progress
+            var result = true;
 
-            //Save to Database
-            using (var context = new DbModels())
+            //Validation Goes Here - Work In Progress
+            List<string> validationResults = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(input.Name))
             {
-                var newItem = new Item()
-                {
-                    AssignedTo = input.AssignedTo,
-                    Cost = (decimal)input.Cost,
-                    Hours = (int)input.Hours,
-                    ItemDate = (DateTime)input.ItemDate,
-                    Name = input.Name,
-                    CreatedBy = input.CreatedBy,
-                    CreatedOn = DateTimeOffset.Now,
-                    ModifiedOn = DateTimeOffset.Now,
-                    Status = 2,//TEMPORARY PUT PENDING APPROVAL HERE BUT WILL CHANGE!
-                };
-                //context.Items.Add(newItem);
-                context.Entry(newItem).State = System.Data.Entity.EntityState.Added;
-                context.SaveChanges();
+                result = false;
+                validationResults.Add("Work Item Name is Required.");
             }
-            return Json(new { Result = true });
+
+            if (input.ItemDate == null)
+            {
+                result = false;
+                validationResults.Add("Work Date is missing or in wrong format.");
+            }
+
+            if (result == true) //Only continue if result is still good
+            {
+                //Check permission to set status
+                var newStatus = ItemStatus.Status.Pending;
+                var myRole = new UserService().GetUserRole(input.CreatedBy);
+                if (myRole == Role.RoleTypes.Admin || myRole == Role.RoleTypes.Owner)
+                    newStatus = ItemStatus.Status.Approved;
+
+                //Save to Database
+                try
+                {
+                    using (var context = new DbModels())
+                    {
+                        var newItem = new Item()
+                        {
+                            AssignedTo = input.AssignedTo,
+                            Cost = (decimal)input.Cost,
+                            Hours = (int)input.Hours,
+                            ItemDate = (DateTime)input.ItemDate,
+                            Name = input.Name,
+                            CreatedBy = input.CreatedBy,
+                            CreatedOn = DateTimeOffset.Now,
+                            ModifiedOn = DateTimeOffset.Now,
+                            Status = (int)newStatus,
+                            WorkStatus = (int)WorkItemStatus.Status.NotStarted //By default not Started
+                        };
+                        context.Items.Add(newItem);
+                        context.SaveChanges();
+                    }
+                }
+                catch (Exception e)
+                {
+                    result = false;
+                    validationResults.Add(e.Message);
+                }
+            }
+            return Json(new { Result = result, validations = validationResults }, JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult Index()

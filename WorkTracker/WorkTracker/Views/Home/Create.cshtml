@@ -10,7 +10,7 @@
     @Html.AntiForgeryToken()
     <h4>Fill out the fields below to create your Work Item.</h4>
     <hr />
-    @Html.ValidationSummary("", new { @class = "text-danger" })
+    @Html.ValidationSummary("", new { @class = "text-danger", @id = "validationSpot" })
     <div class="form-group">
         @Html.LabelFor(m => m.Name, new { @class = "col-md-2 control-label" })
         <div class="col-md-10">
@@ -62,7 +62,15 @@
                     url: "CreateWorkItem",
                     data: $("#createForm").serialize(),
                     success: function (result) {
-                        alert("Got a response from server!");
+                        clearValidation();
+                        if (result.Result == true) {
+                            //good, add to the table of added work items
+                        } else {
+                            //validation or error
+                            for (var i = 0; i < result.validations.length; i++) {
+                                addValidationItem(result.validations[i]);
+                            }
+                        }
                     },
                     error: function (result) {
                         alert("Got an error response from server!");
@@ -70,5 +78,11 @@
                 }
                 );
         });
+        function clearValidation() {
+            $("#validationSpot ul").html("");
+        }
+        function addValidationItem(newItem) {
+            $("#validationSpot ul").append('<li>' + newItem + '</li>');
+        }
     });
 </script>

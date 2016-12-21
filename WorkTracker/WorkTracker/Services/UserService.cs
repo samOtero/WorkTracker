@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Web;
 using WorkTracker.Models;
@@ -8,6 +9,37 @@ namespace WorkTracker.Services
 {
     public class UserService
     {
+        
+        public User GetUser(int myId)
+        {
+            User user = null;
+            using (var context = new DbModels())
+            {
+                user = context.Users.Where(m => m.Id == myId)
+                    .Include(m => m.UserRoles)
+                    .FirstOrDefault();
+            }
+            return user;
+        }
+
+        public Role.RoleTypes GetUserRole(int myId)
+        {
+            Role.RoleTypes myRole = Role.RoleTypes.Employee;
+            using (var context = new DbModels())
+            {
+                var user = context.Users.Where(m => m.Id == myId)
+                    .Include(m => m.UserRoles)
+                    .FirstOrDefault();
+                if (user != null)
+                {
+                    var myRoleID = user.UserRoles.FirstOrDefault().roleId;
+                    myRole = (Role.RoleTypes)myRoleID;
+                }
+
+            }
+            return myRole;
+        }
+
         /// <summary>
         /// Get list of Allowed users, that this particular user can edit/assign task to
         /// </summary>

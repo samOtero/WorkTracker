@@ -24,6 +24,8 @@ namespace WorkTracker.Models
         public virtual DbSet<UserRole> UserRoles { get; set; }
         public virtual DbSet<User> Users { get; set; }
 
+        public virtual DbSet<WorkItemStatus> WorkItemStatus { get; set; }
+
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Feature>()
@@ -53,6 +55,12 @@ namespace WorkTracker.Models
                 .HasMany(e => e.Items)
                 .WithRequired(e => e.ItemStatu)
                 .HasForeignKey(e => e.Status)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<WorkItemStatus>()
+                .HasMany(e => e.Items)
+                .WithRequired(e => e.WorkItemStatu)
+                .HasForeignKey(e => e.WorkStatus)
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<Role>()

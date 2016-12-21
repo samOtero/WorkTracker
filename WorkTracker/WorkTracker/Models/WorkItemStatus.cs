@@ -6,18 +6,17 @@ namespace WorkTracker.Models
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    public partial class ItemStatus
+    public partial class WorkItemStatus
     {
 
         public enum Status
         {
-            Approved = 1,
-            Pending = 2,
-            InReview = 3,
-            Denied = 4
+            NotStarted = 1,
+            Finished = 2,
+            Started = 3
         }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public ItemStatus()
+        public WorkItemStatus()
         {
             Items = new HashSet<Item>();
         }
