@@ -43,6 +43,18 @@ namespace WorkTracker.Controllers
                 validationResults.Add("Work Date is missing or in wrong format.");
             }
 
+            if (input.Cost == null || input.Cost <= 0)
+            {
+                result = false;
+                validationResults.Add("Work Cost is missing or has an invalid value.");
+            }
+
+            if (input.Hours == null || input.Hours <= 0)
+            {
+                result = false;
+                validationResults.Add("Estimated Hours is missing or has an invalid value.");
+            }
+
             if (result == true) //Only continue if result is still good
             {
                 //Check permission to set status

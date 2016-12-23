@@ -27,7 +27,8 @@ namespace WorkTracker
             bundles.Add(new StyleBundle("~/Content/css").Include(
                       "~/Content/bootstrap.css",
                       "~/Content/site.css",
-                      "~/Content/themes/base/jquery-ui.min.css"));
+                      "~/Content/themes/base/jquery-ui.min.css",
+                      "~/Content/notify.min.css"));
         }
     }
 }
