@@ -10,14 +10,16 @@ namespace WorkTracker.Controllers
 {
     public class HomeController : Controller
     {
+        #region Create Work Item
         public ActionResult Create()
         {
             if (!checkAuthentication())
             {
                 return RedirectToAction("Index");
             }
+            var userService = new UserService();
             var model = new CreateViewModel();
-            var currentUserId = (int)Session[WorkTracker.Models.User.ID];
+            var currentUserId = (int)userService.GetMyID();
             //Add Allowed users to your assigned list based on current User Roles
             model.AssignedToList = new UserService().GetAllowedUsers(currentUserId);
             model.CreatedBy = currentUserId;         
@@ -160,6 +162,9 @@ namespace WorkTracker.Controllers
             return Json(new { Result = result, validations = validationResults }, JsonRequestBehavior.AllowGet);
         }
 
+        #endregion Create Work Item
+    
+
         public ActionResult Index()
         {
             if (Request.IsAuthenticated)
@@ -189,28 +194,15 @@ namespace WorkTracker.Controllers
             {
                 return RedirectToAction("Index");
             }
+            var userService = new UserService();
 
             //Create a list of my notifications
             var notificationModel = new NotificationModel();
-            notificationModel.myNotifications = new List<Notification>();
-            //Create fake notifications for testing
-            var notification1 = new Notification();
-            //notification1.Note = "Jairo created new work item needs approval";
-            var notification2 = new Notification();
-           // notification2.Note = "Rodrigo approved a Work Item";
-            //Add fake notifications to model list
-            notificationModel.myNotifications.Add(notification1);
-            notificationModel.myNotifications.Add(notification2);
-            var result = addNumbersSam(200, 10);
-            //notification1.Note = result.ToString();
-            notification1.Id = 2;
-            return View(notificationModel);
-        }
+            var myID = (int)userService.GetMyID();
+            notificationModel.myNotifications = userService.GetNotificationsForUser(myID, true);
+            notificationModel.openBox = false;
 
-        public int addNumbersSam(int firstNumber, int secondNumber)
-        {
-            var sum = firstNumber + secondNumber;
-            return sum;
+            return View(notificationModel);
         }
 
         private bool checkAuthentication()
@@ -219,8 +211,9 @@ namespace WorkTracker.Controllers
             {
                 return false;
             }
+            var userService = new UserService();
             //Set Session UserID
-            if (Session[WorkTracker.Models.User.ID] == null)
+            if (userService.GetMyID() == null)
             {
                 var aspnetID = User.Identity.GetUserId();
                 if (aspnetID != null)
@@ -232,12 +225,17 @@ namespace WorkTracker.Controllers
                         {
                             var userID = currentUser.Id;
                             var userEmail = currentUser.Email;
-                            Session[WorkTracker.Models.User.ID] = userID;
+                            userService.SetMyID(userID);
+                            return true;
                         }
                     }
                 }
             }
-            return true;
+            else
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

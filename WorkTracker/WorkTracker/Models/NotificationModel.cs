@@ -5,7 +5,8 @@ namespace WorkTracker.Models
 {
     public class NotificationModel
     {
-        public List<Notification> myNotifications;
+        public List<NotificationBox> myNotifications;
+        public bool openBox;
     }
 
    

@@ -77,6 +77,12 @@
         $("#createWorkItemBtn").click(function () {
             $("#createWorkItemBtn").val("Creating...");
             $("#createWorkItemBtn").addClass("disabled");
+            var costValue = $("#Cost").val();
+            var estimateValue = $("#Hours").val();
+            costValue = costValue.replace(/,/g, "");
+            estimateValue = estimateValue.replace(/,/g, "");
+            $("#Hours").val(estimateValue);
+            $("#Cost").val(costValue);
             $.ajax(
                 {
                     url: "CreateWorkItem",

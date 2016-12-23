@@ -6,29 +6,105 @@
 
 <div class="row">
     <h1>Dashboard</h1>
-    <p class="lead">Keep track of your Work Items.</p>
-    <p><a href="@Url.Action("Login", "Account")" class="btn btn-primary btn-lg">Log In &raquo;</a> <a href="@Url.Action("Register", "Account")" class="btn btn-primary btn-lg">Register &raquo;</a></p>
-    @Html.Partial("_Notifications", Model)
 </div>
+<div class="row" style="padding-bottom:10px">
+    <div class="col-xs-12">
+        <a href="Create" type="button" class="btn btn-success">Create New Work item</a>
+    </div>
+</div>
+@Html.Partial("_Notifications", Model)
 
-@*<div class="row">
-    <div class="col-md-4">
-        <h2>Getting started</h2>
-        <p>
-            ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-            enables a clean separation of concerns and gives you full control over markup
-            for enjoyable, agile development.
-        </p>
-        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
+
+<p> All Work Items (2) </p>
+<div class="row">
+
+
+    <div class="col-sm-5">
+
+
+        <div class="panel panel-primary">
+
+
+            <div class="panel-heading">Lake Mary House (Pending Approval)</div>
+
+
+            <div class="panel-body">Work to be done on: 11/26/16 </div>
+
+
+            <div class="panel-body">Employee: Jairo</div>
+
+
+            <div class="panel-body">Cost: $1000 </div>
+
+
+            <button type="button" class="btn btn-default">Approve</button>
+
+
+            <button type="button" class="btn btn-default">Deny</button>
+
+
+            <p> </p>
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">
+                    History
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a href="#">Jairo "I will use the drill for this one <br />on 10/26/2016 7:02 PM"</a></li>
+                    <li><a href="#">Jairo created on 10/26/2016 7:00 PM</a></li>
+                    <li><a href="#">You: "Okay that's fine but it will cost $500.00" <br />on 10/28/16 1:50 PM</a></li>
+                    <li><a href="#">Sam "I will be there on Friday <br />on 10/27/16 3:13 PM"</a></li>
+                    <li><a href="#">Sam created on 10/27/16 3:10 PM "</a></li>
+
+
+                </ul>
+            </div>
+
+
+        </div>
+
+
     </div>
-    <div class="col-md-4">
-        <h2>Get more libraries</h2>
-        <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
+
+
+    <div class="col-sm-4">
+
+
+        <div class="panel panel-primary">
+
+
+            <div class="panel-heading">Sanford Elementary School (Approved)</div>
+
+
+            <div class="panel-body">Work to be done on: 11/01/16 </div>
+
+
+            <div class="panel-body">Employee: Sam </div>
+
+
+            <div class="panel-body">Cost: $500 </div>
+
+
+            <button type="button" class="btn btn-default">Mark as Completed</button>
+
+
+            <button type="button" class="btn btn-default">Deny</button>
+
+
+            <p> </p>
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">
+                    History
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a href="#">Sam "I finished the job <br />on 10/30/16 5:55 PM  </a></li>
+                    <li><a href="#">You approved this Work Item <br />on 10/28/16 2:00 PM</a></li>
+                    <li><a href="#">You: "Okay that's fine but it will cost $500.00" <br />on 10/28/16 1:50 PM</a></li>
+                    <li><a href="#">Sam "I will be there on Friday <br />on 10/27/16 3:13 PM"</a></li>
+                    <li><a href="#">Sam created on 10/27/16 3:10 PM "</a></li>
+                </ul>
+            </div>
+        </div>
     </div>
-    <div class="col-md-4">
-        <h2>Web Hosting</h2>
-        <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
-    </div>
-</div>*@
+</div>
