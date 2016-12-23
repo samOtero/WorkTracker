@@ -9,6 +9,21 @@ namespace WorkTracker.Services
 {
     public class UserService
     {
+
+        public List<User> GetOwners()
+        {
+            List<User> ownerList = new List<User>();
+
+            using (var context = new DbModels())
+            {
+                ownerList = (from u in context.Users
+                            join r in context.UserRoles on u.Id equals r.userId
+                            where r.roleId == (int)Role.RoleTypes.Owner
+                            select u).ToList();
+            }
+
+            return ownerList;
+        }
         
         public User GetUser(int myId)
         {
@@ -27,12 +42,11 @@ namespace WorkTracker.Services
             Role.RoleTypes myRole = Role.RoleTypes.Employee;
             using (var context = new DbModels())
             {
-                var user = context.Users.Where(m => m.Id == myId)
-                    .Include(m => m.UserRoles)
+                var user = context.UserRoles.Where(m => m.userId == myId)
                     .FirstOrDefault();
                 if (user != null)
                 {
-                    var myRoleID = user.UserRoles.FirstOrDefault().roleId;
+                    var myRoleID = user.roleId;
                     myRole = (Role.RoleTypes)myRoleID;
                 }
 
@@ -51,11 +65,11 @@ namespace WorkTracker.Services
             using (var context = new DbModels())
             {
                 //Get the current user's role to see who will we add to the list
-                var myUserRoles = context.UserRoles.Where(m => m.userId == myId).FirstOrDefault();
+                var myUserRoles = GetUserRole(myId);
                 if (myUserRoles != null)
                 {
                     //If the user is an employee only add themselves to the list
-                    if (myUserRoles.roleId == (int)Role.RoleTypes.Employee)
+                    if (myUserRoles == Role.RoleTypes.Employee)
                     {
                         var oneUser = context.Users.Where(m => m.Id == myId).FirstOrDefault();
                         if (oneUser != null)
@@ -63,7 +77,7 @@ namespace WorkTracker.Services
                             allowedUsers.Add(oneUser);
                         }
                     }
-                    else if (myUserRoles.roleId == (int)Role.RoleTypes.Owner) //If the user is an Owner add only himself and employees, NOT Admin Users
+                    else if (myUserRoles == Role.RoleTypes.Owner) //If the user is an Owner add only himself and employees, NOT Admin Users
                     {
                         var myselfAndEmployees =
                             from u in context.Users
@@ -72,7 +86,7 @@ namespace WorkTracker.Services
                             select u;
                         allowedUsers.AddRange(myselfAndEmployees);
                     }
-                    else if (myUserRoles.roleId == (int)Role.RoleTypes.Admin) //If the user is an Adminthen add a list of everybody
+                    else if (myUserRoles == Role.RoleTypes.Admin) //If the user is an Adminthen add a list of everybody
                     {
                         var allUsers = context.Users.ToList();
                         allowedUsers.AddRange(allUsers);

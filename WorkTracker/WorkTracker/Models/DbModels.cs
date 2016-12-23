@@ -26,6 +26,8 @@ namespace WorkTracker.Models
 
         public virtual DbSet<WorkItemStatus> WorkItemStatus { get; set; }
 
+        public virtual DbSet<NotificationStatus> NotificationStatus { get; set; }
+
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Feature>()

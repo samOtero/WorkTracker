@@ -24,6 +24,11 @@ namespace WorkTracker.Controllers
             return View(model);
         }
 
+        /// <summary>
+        /// Create Work Item
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public JsonResult CreateWorkItem(CreateViewModel input)
         {
             var result = true;
@@ -57,17 +62,22 @@ namespace WorkTracker.Controllers
 
             if (result == true) //Only continue if result is still good
             {
+                var userService = new UserService();
                 //Check permission to set status
                 var newStatus = ItemStatus.Status.Pending;
-                var myRole = new UserService().GetUserRole(input.CreatedBy);
+                var myRole = userService.GetUserRole(input.CreatedBy);
                 if (myRole == Role.RoleTypes.Admin || myRole == Role.RoleTypes.Owner)
                     newStatus = ItemStatus.Status.Approved;
 
+                //DateCreated
+                var dateNow = DateTimeOffset.Now;
+                var dateNowFormated = dateNow.ToString("MM/dd/yy hh:mm tt");
                 //Save to Database
                 try
                 {
                     using (var context = new DbModels())
                     {
+                        //Create the actual Item with tehe validated information
                         var newItem = new Item()
                         {
                             AssignedTo = input.AssignedTo,
@@ -76,13 +86,69 @@ namespace WorkTracker.Controllers
                             ItemDate = (DateTime)input.ItemDate,
                             Name = input.Name,
                             CreatedBy = input.CreatedBy,
-                            CreatedOn = DateTimeOffset.Now,
-                            ModifiedOn = DateTimeOffset.Now,
+                            CreatedOn = dateNow,
+                            ModifiedOn = dateNow,
                             Status = (int)newStatus,
                             WorkStatus = (int)WorkItemStatus.Status.NotStarted //By default not Started
                         };
                         context.Items.Add(newItem);
                         context.SaveChanges();
+
+                        var creatorUser = userService.GetUser(input.CreatedBy);
+                        var creatorName = creatorUser.FirstName + " " + creatorUser.LastName;
+
+                        //Create Work Item History
+                        var newHistory = new ItemHistory()
+                        {
+                            itemId = newItem.Id,
+                            Note = "Created by " + creatorName + " on " + dateNowFormated + ".",
+                            CreatedBy = input.CreatedBy,
+                            CreatedOn = dateNow,
+                        };
+
+                        context.ItemHistories.Add(newHistory);
+                        context.SaveChanges();
+
+                        //Create Notifications for Item
+                        var needUpdate = false;
+                        Notification newNotification;
+                        //Send to Assigned To user if he is not the creator
+                        if (input.AssignedTo != input.CreatedBy)
+                        {
+                            newNotification = new Notification()
+                            {
+                                AssignedTo = input.AssignedTo,
+                                CreatedOn = dateNow,
+                                ItemId = newItem.Id,
+                                Type = (int)Notification.Types.AssignedTo,
+                                New = true
+                            };
+                            context.Notifications.Add(newNotification);
+                            needUpdate = true;
+                        }
+                        //Send to owner(s)
+                        var ownerList = userService.GetOwners();
+                        foreach(var owner in ownerList)
+                        {
+                            if (owner.Id == input.AssignedTo || owner.Id == input.CreatedBy)
+                                continue;
+
+                            newNotification = new Notification()
+                            {
+                                AssignedTo = owner.Id,
+                                CreatedOn = dateNow,
+                                ItemId = newItem.Id,
+                                Type = (int)Notification.Types.Created,
+                                New = true
+                            };
+                            context.Notifications.Add(newNotification);
+                            needUpdate = true;
+                        }
+
+                        if (needUpdate == true)
+                        {
+                            context.SaveChanges();
+                        }
                     }
                 }
                 catch (Exception e)
@@ -129,9 +195,9 @@ namespace WorkTracker.Controllers
             notificationModel.myNotifications = new List<Notification>();
             //Create fake notifications for testing
             var notification1 = new Notification();
-            notification1.Note = "Jairo created new work item needs approval";
+            //notification1.Note = "Jairo created new work item needs approval";
             var notification2 = new Notification();
-            notification2.Note = "Rodrigo approved a Work Item";
+           // notification2.Note = "Rodrigo approved a Work Item";
             //Add fake notifications to model list
             notificationModel.myNotifications.Add(notification1);
             notificationModel.myNotifications.Add(notification2);
