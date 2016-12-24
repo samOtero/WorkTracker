@@ -12,8 +12,7 @@ namespace WorkTracker.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Item()
         {
-            ItemConversations = new HashSet<ItemConversation>();
-            ItemHistories = new HashSet<ItemHistory>();
+            ItemHistories = new List<ItemHistory>();
         }
 
         public int Id { get; set; }
@@ -49,18 +48,14 @@ namespace WorkTracker.Models
         [Display(Name = "Work Assigned To")]
         public int AssignedTo { get; set; }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ItemConversation> ItemConversations { get; set; }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ItemHistory> ItemHistories { get; set; }
-
         public virtual ItemStatus ItemStatu { get; set; }
 
         public virtual WorkItemStatus WorkItemStatu { get; set; }
 
+        public virtual List<ItemHistory> ItemHistories { get; set; }
+
         public virtual User User { get; set; }
 
-        public virtual User User1 { get; set; }
+        public virtual User UserAssignedTo { get; set; }
     }
 }

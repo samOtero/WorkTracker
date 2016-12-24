@@ -8,3 +8,11 @@
     <h1>Notifications</h1>
 </div>
 @Html.Partial("_Notifications", Model)
+
+<script>
+    //toggle Arrow when clicked
+    $(document).on('click', '.toggleArrowContainer', function () {
+        var myIcon = $(this).find('.arrowIcon');
+        myIcon.toggleClass("glyphicon-chevron-down glyphicon-chevron-up");
+    });
+</script>

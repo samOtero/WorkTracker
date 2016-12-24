@@ -8,6 +8,7 @@ namespace WorkTracker.Models
     public class DashboardModel
     {
         public NotificationModel NotificationModel;
+        public WorkItemListModel WorkItemListModel;
         public Role.RoleTypes userRole;
     }
 }

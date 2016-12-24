@@ -1,0 +1,234 @@
+﻿@using WorkTracker.Models
+@model WorkItemListModel
+@{
+    var workItemCount = "";
+    if (Model.workItems.Count > 0)
+    {
+        workItemCount = "("+Model.workItems.Count+")";
+    }
+}
+<style>
+    .list-group-item-success {
+        color: #3c763d;
+        background-color: #dff0d8;
+    }
+    .list-group-item-danger {
+        color: #a94442;
+        background-color: #f2dede;
+    }
+    .list-group-item-warning {
+        color: #8a6d3b;
+        background-color: #fcf8e3;
+    }
+</style>
+<div class="row">
+    <div class="col-xs-12" id="workItemContainer">
+        @foreach (var item in Model.workItems)
+        {
+            <div class="col-md-6">
+                @Html.Partial("_WorkItem", item)
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+
+
+        //Deny Work Item Section
+
+            //When Deny button is clicked for a Pending approval Work Item
+            $(document).on('click', '.workItemDenyBtn', function () {
+                var itemID = $(this).data('itemid');
+                //Check if it comes from modal
+                var isModal = $(this).data('ismodal');
+                showDenyConfirmation(itemID, isModal);
+            });
+
+            //When Yes is pressed on the Deny Confirmation
+            $(document).on('click', '.workItemDenyConfirmed', function () {
+                var itemID = $(this).data('itemid');
+                //Check if it comes from modal
+                var isModal = $(this).data('ismodal');
+                denyWorkItem(itemID, isModal);
+            });
+
+        //End Deny Work Item Section
+
+        //Approve Work Item Section
+
+            //When Approve button is clicked for a Pending approval Work Item
+            $(document).on('click', '.workItemApproveBtn', function () {
+                var itemID = $(this).data('itemid');
+                //Check if it comes from modal
+                var isModal = $(this).data('ismodal');
+                showApproveConfirmation(itemID, isModal);
+            });
+
+            //When Yes is pressed on the Approve Confirmation
+            $(document).on('click', '.workItemApproveConfirmed', function () {
+                var itemID = $(this).data('itemid');
+                //Check if it comes from modal
+                var isModal = $(this).data('ismodal');
+                approveWorkItem(itemID, isModal);
+            });
+
+        //End Approve Work Item Section
+
+        //Generic
+
+            //When No is pressed on Confirmation, reset the text on the line item
+            $(document).on('click', '.workItemApproveReset', function () {
+                var itemID = $(this).data('itemid');
+                //Check if it comes from modal
+                var isModal = $(this).data('ismodal');
+                resetApproveText(itemID, isModal);
+            });
+
+        //End Generic
+    });
+
+    //Deny Work Item Functions Section
+
+        //If the deny confirmation is made, call the ajax
+        function denyWorkItem(itemID, isModal) {
+            var baseName = "#workItemApproveLine" + itemID;
+            var confirmationText = 'Denying Work Item... Please Wait...';
+            updateWorkItemField(baseName, isModal, confirmationText, true);
+
+            $.ajax({
+                url: "DenyWorkItem",
+                data: { itemID: itemID },
+                success: function (result) {
+                    if (result.success == true) {
+                        var statusName = "#workItemStatusLine" + itemID;
+                        var statusChangeText = "Status: Denied";
+                        confirmationText = "Success! Work Item Denied!";
+                        updateWorkItemField(statusName, isModal, statusChangeText, true);
+                        changeListGroupItemColor(statusName, "list-group-item-danger");
+                        updateWorkItemField(baseName, isModal, confirmationText, true);
+                        var historyItem = result.history;
+                        addHistoryItem(itemID, historyItem);
+                    } else {
+                        confirmationText = "Error! Refresh page and try again.";
+                        updateWorkItemField(baseName, isModal, confirmationText, true);
+                    }
+                },
+                error: function (result) {
+                    confirmationText = "Error! Refresh page and try again.";
+                    updateWorkItemField(baseName, isModal, confirmationText, true);
+                }
+            });
+        }
+
+        function showDenyConfirmation(itemID, isModal) {
+            var baseName = "#workItemApproveLine" + itemID;
+            var confirmationText = 'Are you sure you want to Deny?<br><button data-itemid="' + itemID + '" data-ismodal="' + isModal + '" class="btn btn-success workItemDenyConfirmed">Yes</button> <button data-itemid="' + itemID + '" data-ismodal="' + isModal + '" class="btn btn-danger workItemApproveReset">No</button>';
+            updateWorkItemField(baseName, isModal, confirmationText, false);
+        }
+
+    //End Deny Work Item Functions Section
+
+    //Aprove Work Item Functions Section
+
+        //If the approve confirmation is made, call the ajax
+        function approveWorkItem(itemID, isModal) {
+            var baseName = "#workItemApproveLine" + itemID;
+            var confirmationText = 'Approving Work Item... Please Wait...';
+            updateWorkItemField(baseName, isModal, confirmationText, true);
+
+            $.ajax({
+                url: "ApproveWorkItem",
+                data: { itemID: itemID },
+                success: function (result) {
+                    if (result.success == true) {
+                        var statusName = "#workItemStatusLine" + itemID;
+                        var statusChangeText = "Status: Approved";
+                        confirmationText = "Success! Work Item Approved!";
+                        updateWorkItemField(statusName, isModal, statusChangeText, true);
+                        changeListGroupItemColor(statusName, "list-group-item-success")
+                        updateWorkItemField(baseName, isModal, confirmationText, true);
+                        var historyItem = result.history;
+                        addHistoryItem(itemID, historyItem);
+                    }else{
+                        confirmationText = "Error! Refresh page and try again.";
+                        updateWorkItemField(baseName, isModal, confirmationText, true);
+                    }
+                },
+                error: function (result) {
+                    confirmationText = "Error! Refresh page and try again.";
+                    updateWorkItemField(baseName, isModal, confirmationText, true);
+                }
+            });
+        }
+
+        function showApproveConfirmation(itemID, isModal) {
+            var baseName = "#workItemApproveLine" + itemID;
+            var confirmationText = 'Are you sure you want to Approve?<br><button data-itemid="' + itemID + '" data-ismodal="' + isModal + '" class="btn btn-success workItemApproveConfirmed">Yes</button> <button data-itemid="' + itemID + '" data-ismodal="' + isModal + '" class="btn btn-danger workItemApproveReset">No</button>';
+            updateWorkItemField(baseName, isModal, confirmationText, false);
+        }
+
+    //End Approve Work Item Functions Section
+
+    //Generic functions
+
+        //Reset Approve/Deny text if they press no in either confirmation
+        function resetApproveText(itemID, isModal) {
+            var baseName = "#workItemApproveLine" + itemID;
+            var confirmationText = '<button data-itemid="' + itemID + '" data-ismodal="' + isModal + '" class="btn btn-success workItemApproveBtn">Approve</button> <button data-itemid="' + itemID + '" data-ismodal="' + isModal + '" class="btn btn-danger workItemDenyBtn">Deny</button>';
+            updateWorkItemField(baseName, isModal, confirmationText, false);
+        }
+
+        //Add Item History Items to Work Item panels as needed
+        function addHistoryItem(itemID, newItem) {
+            var baseName = "#historyGroup" + itemID;
+            var modalName = baseName + "Modal";
+            var baseTag = $(baseName);
+            var modalTag = $(modalName);
+            var historyFormat = '<li class="list-group-item">' + newItem + '</li>';
+            if (baseTag.length) {
+                baseTag.prepend(historyFormat);
+            }
+            if (modalTag.length) {
+                modalTag.prepend(historyFormat);
+            }
+        }
+
+        //Will update Work Item Panels Information as needed
+        function updateWorkItemField(baseName, isModal, newHtml, doForBoth) {
+            if (isModal == "yes" || doForBoth == true) {
+                var modalTag = $(baseName + "Modal");
+                if (modalTag.length) {
+                    modalTag.html(newHtml);
+                }
+            }
+            if (isModal == "no" || doForBoth == true) {
+                var baseTag = $(baseName);
+                if (baseTag.length) {
+                    baseTag.html(newHtml);
+                }
+            }
+        }
+
+    //Update List group item color
+        function changeListGroupItemColor(lineName, newColorClass) {
+            var lineTag = $(lineName);
+            var lineTagModal = $(lineName = "Modal");
+            if (lineTag.length) {
+                lineTag.removeClass("list-group-item-danger");
+                lineTag.removeClass('list-group-item-success');
+                lineTag.removeClass("list-group-item-warning");
+                lineTag.addClass(newColorClass);
+            }
+            if (lineTagModal.length) {
+                lineTagModal.removeClass("list-group-item-danger");
+                lineTagModal.removeClass('list-group-item-success');
+                lineTagModal.removeClass("list-group-item-warning");
+                lineTagModal.addClass(newColorClass);
+            }
+        }
+
+    //End Generic Functions Section
+
+</script>

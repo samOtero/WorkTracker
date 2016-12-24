@@ -11,7 +11,9 @@ namespace WorkTracker.Models
         public enum Types
         {
             AssignedTo = 1,
-            Created = 2
+            Created = 2,
+            Approved = 3,
+            Denied = 4
         }
         public int Id { get; set; }
 

@@ -20,10 +20,10 @@
                     }
                     if (totalNew > 0)
                     {
-                        newText = "("+totalNew+" NEW)";
+                        newText = "("+totalNew+" New)";
                     }
                 }
-                <div id="workItem2" data-toggle="collapse" data-target="#notificationInfo" class="panel-heading"><h4>Notifications @(newText) <span id="workItem2Icon" class="glyphicon glyphicon-chevron-up pull-right"></span></h4></div>
+                <div data-toggle="collapse" data-target="#notificationInfo" class="panel-heading toggleArrowContainer"><h4>Notifications @(newText) <span class="arrowIcon glyphicon glyphicon-chevron-up pull-right"></span></h4></div>
                 <ul id="notificationInfo" class="list-group collapse @(openBox)">
                     @if (Model.myNotifications.Count == 0)
                     {
@@ -46,6 +46,19 @@
             </div>
         </div>
     </div>
+<div class="modal fade" id="workItemModal" role="dialog">
+    <div class="modal-dialog modal-lg" style="width:95%">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title" id="workItemModalTitle">Work Item</h4>
+            </div>
+            <div class="modal-body" id="workItemModalBody">
+                <p>Loading Work Item...</p>
+            </div>
+        </div>
+    </div>
+</div>
 <style>
 .itemLink {
     color:blue;
@@ -54,13 +67,8 @@
 </style>
     <script>
         $(document).ready(function () {
-            //Toggle Notification Arrow icon
-            $("#workItem2").click(function () {
-                var myIcon = $("#workItem2Icon");
-                myIcon.toggleClass("glyphicon-chevron-down glyphicon-chevron-up");
-            });
-
-            $(".itemLink").click(function () {
+            //On WorkItem link click
+            $(document).on('click', '.itemLink', function () {
                 var itemID = $(this).data("itemid");
                 openWorkItem(itemID);
             });
@@ -68,6 +76,20 @@
         });
 
         function openWorkItem(itemID) {
-            alert("Open Work Item: " + itemID);
+            $("#workItemModalBody").text("Loading Work Item...");
+            $("#workItemModal").modal({
+                show: true,
+                backdrop: "static"
+            });
+            $.ajax({
+                url: "GetWorkItemPartial",
+                data: {itemID: itemID},
+                success: function (result) {
+                    $("#workItemModalBody").html(result.viewString);
+                },
+                error: function (result) {
+                    $("#workItemModalBody").html("Error... Please Try again...");
+                }
+            });
         }
     </script>

@@ -22,97 +22,23 @@
 </div>
 @Html.Partial("_Notifications", Model.NotificationModel)
 
-
-<p> All Work Items (2) </p>
 <div class="row">
-
-
-    <div class="col-sm-5">
-
-
-        <div class="panel panel-primary">
-
-
-            <div class="panel-heading">Lake Mary House (Pending Approval)</div>
-
-
-            <div class="panel-body">Work to be done on: 11/26/16 </div>
-
-
-            <div class="panel-body">Employee: Jairo</div>
-
-
-            <div class="panel-body">Cost: $1000 </div>
-
-
-            <button type="button" class="btn btn-default">Approve</button>
-
-
-            <button type="button" class="btn btn-default">Deny</button>
-
-
-            <p> </p>
-            <div class="dropdown">
-                <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">
-                    History
-                    <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                    <li><a href="#">Jairo "I will use the drill for this one <br />on 10/26/2016 7:02 PM"</a></li>
-                    <li><a href="#">Jairo created on 10/26/2016 7:00 PM</a></li>
-                    <li><a href="#">You: "Okay that's fine but it will cost $500.00" <br />on 10/28/16 1:50 PM</a></li>
-                    <li><a href="#">Sam "I will be there on Friday <br />on 10/27/16 3:13 PM"</a></li>
-                    <li><a href="#">Sam created on 10/27/16 3:10 PM "</a></li>
-
-
-                </ul>
-            </div>
-
-
-        </div>
-
-
-    </div>
-
-
-    <div class="col-sm-4">
-
-
-        <div class="panel panel-primary">
-
-
-            <div class="panel-heading">Sanford Elementary School (Approved)</div>
-
-
-            <div class="panel-body">Work to be done on: 11/01/16 </div>
-
-
-            <div class="panel-body">Employee: Sam </div>
-
-
-            <div class="panel-body">Cost: $500 </div>
-
-
-            <button type="button" class="btn btn-default">Mark as Completed</button>
-
-
-            <button type="button" class="btn btn-default">Deny</button>
-
-
-            <p> </p>
-            <div class="dropdown">
-                <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">
-                    History
-                    <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                    <li><a href="#">Sam "I finished the job <br />on 10/30/16 5:55 PM  </a></li>
-                    <li><a href="#">You approved this Work Item <br />on 10/28/16 2:00 PM</a></li>
-                    <li><a href="#">You: "Okay that's fine but it will cost $500.00" <br />on 10/28/16 1:50 PM</a></li>
-                    <li><a href="#">Sam "I will be there on Friday <br />on 10/27/16 3:13 PM"</a></li>
-                    <li><a href="#">Sam created on 10/27/16 3:10 PM "</a></li>
-                </ul>
-            </div>
-        </div>
+    <div class="col-xs-12">
+        <h3>Work Items</h3>
     </div>
 </div>
+<div class="row" style="padding-bottom:10px">
+    <div class="col-xs-12">
+        Sort by: Show All
+    </div>
+</div>
+
+@Html.Partial("_WorkItemList", Model.WorkItemListModel)
+
+<script>
+    //toggle Arrow when clicked
+    $(document).on('click', '.toggleArrowContainer', function () {
+        var myIcon = $(this).find('.arrowIcon');
+        myIcon.toggleClass("glyphicon-chevron-down glyphicon-chevron-up");
+    });
+</script>

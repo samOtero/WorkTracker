@@ -20,9 +20,29 @@ namespace WorkTracker.Services
             Item item = null;
             using (var context = new DbModels())
             {
-                item = context.Items.Where(m => m.Id == id).FirstOrDefault();
+                item = context.Items.Where(m => m.Id == id)
+                    .Include(m => m.User)
+                    .Include(m => m.UserAssignedTo)
+                    .Include(m => m.ItemHistories)
+                    .FirstOrDefault();
             }
             return item;
+        }
+
+        public List<Item> GetWorkItemFromUserID(List<int> ids)
+        {
+            List<Item> items = new List<Item>();
+            using (var context = new DbModels())
+            {
+                items = context.Items.Where(m => ids.Contains(m.AssignedTo))
+                    .Include(m => m.User)
+                    .Include(m => m.UserAssignedTo)
+                    .Include(m => m.ItemHistories)
+                    .OrderByDescending(m => m.ItemDate)
+                    .OrderByDescending(m => m.Status)
+                    .ToList();
+            }
+            return items;
         }
         #endregion Work Items
 
@@ -71,6 +91,10 @@ namespace WorkTracker.Services
                 {
                     query = query.Where(m => m.New == true);
                 }
+
+                //Order by newest first
+                query = query.OrderByDescending(m => m.CreatedOn);
+
                 notifications = query.ToList();
 
                 //Get all the types of notifications to get the correct formatting
@@ -108,8 +132,20 @@ namespace WorkTracker.Services
             var noteText = "";
             var item = GetWorkItemFromID(note.ItemId);
             var noteFormatText = status.description;
-            var creatorUser = GetUser(item.CreatedBy);
-            noteText = string.Format(noteFormatText, "<span class=\"itemLink\" data-itemid=\""+note.ItemId+"\">Work Item</span>", creatorUser.FullName);
+            var workItemText = "<span class=\"itemLink\" data-itemid=\"" + note.ItemId + "\">Work Item</span>";
+            
+            if (note.Type == (int)Notification.Types.Approved || note.Type == (int)Notification.Types.Denied )
+            {
+                var owners = GetOwners();
+                var owner = owners.First();
+                noteText = string.Format(noteFormatText, workItemText, owner.FirstName + " " + owner.LastName);
+            }
+            else
+            {
+                var creatorUser = GetUser(item.CreatedBy);
+                noteText = string.Format(noteFormatText, workItemText, creatorUser.FullName);
+            }
+            
             noteText += " ("+note.CreatedOn.ToString("MM/dd/yy")+")";
             return noteText;
         }

@@ -11,7 +11,6 @@ namespace WorkTracker.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public User()
         {
-            ItemConversations = new HashSet<ItemConversation>();
             ItemHistories = new HashSet<ItemHistory>();
             Items = new HashSet<Item>();
             Items1 = new HashSet<Item>();
@@ -38,9 +37,6 @@ namespace WorkTracker.Models
 
         [NotMapped]
         public string FullName { get; set; }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ItemConversation> ItemConversations { get; set; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ItemHistory> ItemHistories { get; set; }

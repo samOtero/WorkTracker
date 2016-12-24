@@ -14,7 +14,6 @@ namespace WorkTracker.Models
         }
 
         public virtual DbSet<Feature> Features { get; set; }
-        public virtual DbSet<ItemConversation> ItemConversations { get; set; }
         public virtual DbSet<ItemHistory> ItemHistories { get; set; }
         public virtual DbSet<Item> Items { get; set; }
         public virtual DbSet<ItemStatus> ItemStatus { get; set; }
@@ -44,11 +43,6 @@ namespace WorkTracker.Models
                 .HasPrecision(19, 4);
 
             modelBuilder.Entity<Item>()
-                .HasMany(e => e.ItemConversations)
-                .WithRequired(e => e.Item)
-                .WillCascadeOnDelete(false);
-
-            modelBuilder.Entity<Item>()
                 .HasMany(e => e.ItemHistories)
                 .WithRequired(e => e.Item)
                 .WillCascadeOnDelete(false);
@@ -76,12 +70,6 @@ namespace WorkTracker.Models
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<User>()
-                .HasMany(e => e.ItemConversations)
-                .WithRequired(e => e.User)
-                .HasForeignKey(e => e.CreatedBy)
-                .WillCascadeOnDelete(false);
-
-            modelBuilder.Entity<User>()
                 .HasMany(e => e.ItemHistories)
                 .WithRequired(e => e.User)
                 .HasForeignKey(e => e.CreatedBy)
@@ -95,7 +83,7 @@ namespace WorkTracker.Models
 
             modelBuilder.Entity<User>()
                 .HasMany(e => e.Items1)
-                .WithRequired(e => e.User1)
+                .WithRequired(e => e.UserAssignedTo)
                 .HasForeignKey(e => e.AssignedTo)
                 .WillCascadeOnDelete(false);
 

@@ -1,73 +1,52 @@
 ﻿@using WorkTracker.Models
-@model NotificationModel
-    <div class="row">
-        <div class="col-xs-12">
-            <div class="panel panel-primary">
-                @{ 
-                    var openBox = "";
-                    if (Model.openBox == true)
-                    {
-                        openBox = "in";
-                    }
-                    int totalNew = 0;
-                    string newText = "";
-                    foreach(var note in Model.myNotifications)
-                    {
-                        if (note.isNew == true)
-                        {
-                            totalNew++;
-                        }
-                    }
-                    if (totalNew > 0)
-                    {
-                        newText = "("+totalNew+" NEW)";
-                    }
-                }
-                <div id="workItem2" data-toggle="collapse" data-target="#notificationInfo" class="panel-heading"><h4>Notifications @(newText) <span id="workItem2Icon" class="glyphicon glyphicon-chevron-up pull-right"></span></h4></div>
-                <ul id="notificationInfo" class="list-group collapse @(openBox)">
-                    @if (Model.myNotifications.Count == 0)
-                    {
-                        <li class="list-group-item">No new Notifications.</li>
-                    }
-                    else
-                    {
-                        foreach (var currentNotification in Model.myNotifications)
-                        {
-                            <li class="list-group-item">@Html.Raw(currentNotification.text)</li>
-                        }
-
-                    }
-                    @if (Model.showViewAllBtn == true)
-                    {
-                        <li class="list-group-item"><a type="button" href="Notifications" class="btn btn-success">View All Notifications</a></li>
-                    }
-                </ul>
-
-            </div>
-        </div>
-    </div>
-<style>
-.itemLink {
-    color:blue;
-    cursor:pointer;
-}
-</style>
-    <script>
-        $(document).ready(function () {
-            //Toggle Notification Arrow icon
-            $("#workItem2").click(function () {
-                var myIcon = $("#workItem2Icon");
-                myIcon.toggleClass("glyphicon-chevron-down glyphicon-chevron-up");
-            });
-
-            $(".itemLink").click(function () {
-                var itemID = $(this).data("itemid");
-                openWorkItem(itemID);
-            });
-
-        });
-
-        function openWorkItem(itemID) {
-            alert("Open Work Item: " + itemID);
+@model WorkItemModel
+    @{ 
+        var forModal = "";
+        var isModal = "no";
+        if (Model.forModal == true)
+        {
+            forModal = "Modal";
+            isModal = "yes";
         }
-    </script>
+
+        var paneltype = "list-group-item-warning";
+        if (Model.approvalStatus == ItemStatus.Status.Approved)
+        {
+            paneltype = "list-group-item-success";
+        }
+        else if (Model.approvalStatus == ItemStatus.Status.Denied)
+        {
+            paneltype = "list-group-item-danger";
+        }
+    }
+<div class="col-xs-12">
+    <div class="panel panel-primary">
+        <div class="panel-heading">@(Model.title)</div>
+        <ul class="list-group">
+            <li class="list-group-item @(paneltype)" id="workItemStatusLine@(Model.itemID)@(forModal)">Status: @(Model.approval)</li>
+            <li class="list-group-item">Starting: @(Model.time)</li>
+            <li class="list-group-item">Cost: @(Model.cost)</li>
+            <li class="list-group-item">Assigned To: @(Model.assignedTo)</li>
+            @if (Model.canApprove == true)
+            {
+                if (Model.approvalStatus == ItemStatus.Status.Pending)
+                {
+                    <li class="list-group-item" id="workItemApproveLine@(Model.itemID)@(forModal)"><button data-itemid="@(Model.itemID)" data-ismodal="@(isModal)" class="btn btn-success workItemApproveBtn">Approve</button> <button data-itemid="@(Model.itemID)" data-ismodal="@(isModal)" class="btn btn-danger workItemDenyBtn">Deny</button></li>
+                }
+            }
+            <li class="list-group-item">
+                <div class="panel panel-primary" style="">
+                    <div class="panel-heading toggleArrowContainer" data-toggle="collapse" data-target="#historyGroup@(Model.itemID)@(forModal)">History <span class="arrowIcon glyphicon glyphicon-chevron-up pull-right"></span></div>
+                    <ul class="list-group collapse" id="historyGroup@(Model.itemID)@(forModal)">
+                        @foreach (var history in Model.history)
+                        {
+                            <li class="list-group-item">@(history)</li>
+                        }
+                    </ul>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+</div>
+
