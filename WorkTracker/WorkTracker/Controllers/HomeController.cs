@@ -188,7 +188,7 @@ namespace WorkTracker.Controllers
             return View();
         }
 
-        public ActionResult Dashboard()
+        public ActionResult Notifications()
         {
             if (!checkAuthentication())
             {
@@ -197,13 +197,50 @@ namespace WorkTracker.Controllers
             var userService = new UserService();
 
             //Create a list of my notifications
-            var notificationModel = new NotificationModel();
-            var myID = (int)userService.GetMyID();
-            notificationModel.myNotifications = userService.GetNotificationsForUser(myID, true);
-            notificationModel.openBox = false;
+            var notificationModel = GetNotificationModel(userService, false);
+            notificationModel.openBox = true;
+            notificationModel.showViewAllBtn = false;
 
             return View(notificationModel);
         }
+
+        /// <summary>
+        /// Get List of Notifications for this User
+        /// </summary>
+        /// <param name="service"></param>
+        /// <returns></returns>
+        private NotificationModel GetNotificationModel(UserService service, bool showOnlyNew)
+        {
+            var notificationModel = new NotificationModel();
+            var myID = (int)service.GetMyID();
+            notificationModel.myNotifications = service.GetNotificationsForUser(myID, showOnlyNew);
+            return notificationModel;
+        }
+
+        public ActionResult Dashboard()
+        {
+            if (!checkAuthentication())
+            {
+                return RedirectToAction("Index");
+            }
+            var userService = new UserService();
+            var userID = (int)userService.GetMyID();
+            var userRole = userService.GetUserRole(userID);
+
+            //Create Notifications Model
+            var notificationModel = GetNotificationModel(userService, true);
+            notificationModel.openBox = false;
+            notificationModel.showViewAllBtn = true;
+
+            //Create Dashboard Model
+            var dashboardModel = new DashboardModel();
+            dashboardModel.NotificationModel = notificationModel;
+            dashboardModel.userRole = userRole;
+
+            return View(dashboardModel);
+        }
+
+
 
         private bool checkAuthentication()
         {

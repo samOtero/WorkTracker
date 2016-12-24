@@ -7,6 +7,7 @@ namespace WorkTracker.Models
     {
         public List<NotificationBox> myNotifications;
         public bool openBox;
+        public bool showViewAllBtn;
     }
 
    

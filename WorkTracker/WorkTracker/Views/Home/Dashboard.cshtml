@@ -1,18 +1,26 @@
 ﻿@using WorkTracker.Models
-@model NotificationModel
+@model DashboardModel
 @{
-    ViewBag.Title = "Dashboard";
+    var roleTitleName = "My";
+    if (Model.userRole == Role.RoleTypes.Admin)
+    {
+        roleTitleName = "Admin";
+    }else if (Model.userRole == Role.RoleTypes.Owner)
+    {
+        roleTitleName = "Owner";
+    }
+    ViewBag.Title = roleTitleName + " Dashboard";
 }
 
 <div class="row">
-    <h1>Dashboard</h1>
+    <h1>@(roleTitleName) Dashboard</h1>
 </div>
 <div class="row" style="padding-bottom:10px">
     <div class="col-xs-12">
         <a href="Create" type="button" class="btn btn-success">Create New Work item</a>
     </div>
 </div>
-@Html.Partial("_Notifications", Model)
+@Html.Partial("_Notifications", Model.NotificationModel)
 
 
 <p> All Work Items (2) </p>

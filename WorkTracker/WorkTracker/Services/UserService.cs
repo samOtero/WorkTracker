@@ -110,6 +110,7 @@ namespace WorkTracker.Services
             var noteFormatText = status.description;
             var creatorUser = GetUser(item.CreatedBy);
             noteText = string.Format(noteFormatText, "<span class=\"itemLink\" data-itemid=\""+note.ItemId+"\">Work Item</span>", creatorUser.FullName);
+            noteText += " ("+note.CreatedOn.ToString("MM/dd/yy")+")";
             return noteText;
         }
 
