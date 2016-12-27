@@ -14,5 +14,11 @@
     $(document).on('click', '.toggleArrowContainer', function () {
         var myIcon = $(this).find('.arrowIcon');
         myIcon.toggleClass("glyphicon-chevron-down glyphicon-chevron-up");
+
+        //try to toggle the collapse, this will fix the Iphone/Ipad issue with the collapse not working
+        var collapseTarget = $(this).data('target');
+        if (collapseTarget != null) {
+            $(collapseTarget).collapse('toggle');
+        }
     });
 </script>

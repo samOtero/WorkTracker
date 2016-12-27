@@ -36,7 +36,7 @@
             }
             <li class="list-group-item">
                 <div class="panel panel-primary" style="">
-                    <div class="panel-heading toggleArrowContainer" data-toggle="collapse" data-target="#historyGroup@(Model.itemID)@(forModal)">History <span class="arrowIcon glyphicon glyphicon-chevron-up pull-right"></span></div>
+                    <div class="panel-heading toggleArrowContainer" onclick="void(0)" data-target="#historyGroup@(Model.itemID)@(forModal)">History <span class="arrowIcon glyphicon glyphicon-chevron-up pull-right"></span></div>
                     <ul class="list-group collapse" id="historyGroup@(Model.itemID)@(forModal)">
                         @foreach (var history in Model.history)
                         {

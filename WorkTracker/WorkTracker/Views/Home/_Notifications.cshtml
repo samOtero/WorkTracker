@@ -23,7 +23,7 @@
                         newText = "("+totalNew+" New)";
                     }
                 }
-                <div data-toggle="collapse" data-target="#notificationInfo" class="panel-heading toggleArrowContainer"><h4>Notifications @(newText) <span class="arrowIcon glyphicon glyphicon-chevron-up pull-right"></span></h4></div>
+                <div onclick="void(0)" data-target="#notificationInfo" class="panel-heading toggleArrowContainer"><h4>Notifications @(newText) <span class="arrowIcon glyphicon glyphicon-chevron-up pull-right"></span></h4></div>
                 <ul id="notificationInfo" class="list-group collapse @(openBox)">
                     @if (Model.myNotifications.Count == 0)
                     {

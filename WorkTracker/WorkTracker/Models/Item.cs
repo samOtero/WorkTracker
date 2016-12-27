@@ -18,17 +18,17 @@ namespace WorkTracker.Models
         public int Id { get; set; }
 
         [Required]
-        [Display(Name = "Work Item Name")]
+        [Display(Name = "Work Report Name")]
         public string Name { get; set; }
 
         [Column(TypeName = "money")]
-        [Display(Name = "Work Cost")]
+        [Display(Name = "Amount owed for Work")]
         public decimal Cost { get; set; }
 
         [Display(Name = "Work Date")]
         public DateTimeOffset ItemDate { get; set; }
 
-        [Display(Name = "Estimated Hours")]
+        [Display(Name = "Hours Worked")]
         public int Hours { get; set; }
 
         public bool Paid { get; set; }
