@@ -8,11 +8,11 @@ namespace WorkTracker.Models
     {
 
         [Required]
-        [Display(Name = "Work Item Name")]
+        [Display(Name = "Work Report Name")]
         public string Name { get; set; }
 
         [Required]
-        [Display(Name = "Work Cost")]
+        [Display(Name = "Amount owed for this Work Report")]
         public decimal? Cost { get; set; }
 
         [Required]
@@ -20,12 +20,15 @@ namespace WorkTracker.Models
         public DateTime? ItemDate { get; set; }
 
         [Required]
-        [Display(Name = "Estimated Hours")]
+        [Display(Name = "Hours Worked")]
         public int? Hours { get; set; }
 
         //User ID
-        [Display(Name = "Work Assigned To")]
+        [Display(Name = "Work done by")]
         public int AssignedTo { get; set; }
+
+        [Display(Name = "Work Report Description")]
+        public string WorkDescription { get; set; }
 
         //List of user that we can assign to this Work Item (list will differ from Employer and Employee)
         public List<User> AssignedToList { get; set; }

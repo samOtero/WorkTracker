@@ -17,10 +17,16 @@
             @Html.TextBoxFor(m => m.Name, new { @class = "form-control" })
         </div>
     </div>
-    <div class="form-group">
+    @*<div class="form-group">
         @Html.LabelFor(m => m.ItemDate, new { @class = "col-md-2 control-label" })
         <div class="col-md-10">
             @Html.TextBoxFor(m => m.ItemDate, new { @class = "form-control" })
+        </div>
+    </div>*@
+    <div class="form-group">
+        @Html.LabelFor(m => m.WorkDescription, new { @class = "col-md-2 control-label" })
+        <div class="col-md-10">
+            @Html.TextAreaFor(m => m.WorkDescription, new { @class = "form-control" })
         </div>
     </div>
     <div class="form-group">
@@ -55,7 +61,7 @@
         <thead>
             <tr>
                 <th>Name</th>
-                <th>Date</th>
+                <th>Description</th>
                 <th>Cost</th>
                 <th>Hours</th>
                 <th>Assigned To</th>
@@ -127,21 +133,21 @@
         function addCreatedItem() {
             //Get field values
             var name = $("#Name").val();
-            var date = $("#ItemDate").val();
+            var description = $("#WorkDescription").val();
             var cost = $("#Cost").val();
             var hours = $("#Hours").val();
             var assigned = $("#AssignedTo").find(":selected").text();
             //Add new row to table
             $("#createdTableBody").append("<tr>"+
                 "<td>"+name+"</td>" +
-                "<td>" + date + "</td>" +
+                "<td>" + description + "</td>" +
                 "<td>" + cost + "</td>" +
                 "<td>" + hours + "</td>" +
                 "<td>" + assigned + "</td>" +
                 "</tr>");
             //Clear our fields
             $("#Name").val("");
-            $("#ItemDate").val("");
+            $("#WorkDescription").val("");
             $("#Cost").val("");
             $("#Hours").val("");
         }

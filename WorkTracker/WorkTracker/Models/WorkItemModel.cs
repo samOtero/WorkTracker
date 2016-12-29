@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using System.Web.Mvc;
 
 namespace WorkTracker.Models
 {
@@ -9,6 +10,7 @@ namespace WorkTracker.Models
     {
         public int itemID { get; set; }
         public string title { get; set; }
+        public string description { get; set; }
         public string approval { get; set; }
         public string time { get; set; }
         public string assignedTo { get; set; }
@@ -19,5 +21,7 @@ namespace WorkTracker.Models
         public bool canApprove { get; set; }
 
         public bool forModal { get; set; }
+
+        public SelectList statusOptions { get; set; }
     }
 }

@@ -20,6 +20,12 @@
         color: #8a6d3b;
         background-color: #fcf8e3;
     }
+    .hideMe {
+        display:none;
+    }
+    .showMeInline {
+        display:inline;
+    }
 </style>
 <div class="row">
     <div class="col-xs-12" id="workItemContainer">
@@ -35,6 +41,14 @@
 <script>
     $(document).ready(function () {
 
+        //Edit Work Item Section
+
+            //When Edit button is clicked for a Work Item
+            $(document).on('click', '.editWorkItemBtn', function () {
+                var itemID = $(this).data('itemid');
+                //Show or hide edit details for this item
+                $(".editSection" + itemID).toggleClass('hideMe showMeInline');                
+            });
 
         //Deny Work Item Section
 

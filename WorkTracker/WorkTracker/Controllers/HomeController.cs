@@ -225,11 +225,21 @@ namespace WorkTracker.Controllers
             var canApprove = CanApproveItem(role);
             //Get Items from user ids
             List<Item> items = service.GetWorkItemFromUserID(userIds);
+
+            
+
             //Create Work Item Model from list
             WorkItemModel itemModel;
             foreach (var item in items)
             {
+                //Create status options for editing work item
+                var statusOptionsList = new List<ItemStatusListModel>();
+                statusOptionsList.Add(new ItemStatusListModel() { Text = "Pending Approval", Value = (int)ItemStatus.Status.Pending });
+                statusOptionsList.Add(new ItemStatusListModel() { Text = "Approved", Value = (int)ItemStatus.Status.Approved });
+                statusOptionsList.Add(new ItemStatusListModel() { Text = "Denied", Value = (int)ItemStatus.Status.Denied });
+                var statusOptions = new SelectList(statusOptionsList, "Value", "Text", item.Status);
                 itemModel = GetItemModelFromItem(item, canApprove);
+                itemModel.statusOptions = statusOptions;
                 model.workItems.Add(itemModel);
             }
             return model;
@@ -253,6 +263,7 @@ namespace WorkTracker.Controllers
             itemModel.workStatus = (WorkItemStatus.Status)item.WorkStatus;
             itemModel.cost = item.Cost.ToString("C");
             itemModel.title = item.Name;
+            itemModel.description = item.WorkDescription;
             itemModel.approval = GetApprovalText(itemModel.approvalStatus);
             itemModel.time = item.ItemDate.ToString("MM/dd/yy");
             itemModel.assignedTo = item.UserAssignedTo.FirstName + " " + item.UserAssignedTo.LastName;
@@ -324,25 +335,25 @@ namespace WorkTracker.Controllers
             if (string.IsNullOrWhiteSpace(input.Name))
             {
                 result = false;
-                validationResults.Add("Work Item Name is Required.");
+                validationResults.Add("Work Report Name is Required.");
             }
 
-            if (input.ItemDate == null)
+            if (string.IsNullOrWhiteSpace(input.WorkDescription))
             {
                 result = false;
-                validationResults.Add("Work Date is missing or in wrong format.");
+                validationResults.Add("Work Report Description is Required.");
             }
 
             if (input.Cost == null || input.Cost <= 0)
             {
                 result = false;
-                validationResults.Add("Work Cost is missing or has an invalid value.");
+                validationResults.Add("Amount owed is missing or has an invalid value.");
             }
 
             if (input.Hours == null || input.Hours <= 0)
             {
                 result = false;
-                validationResults.Add("Estimated Hours is missing or has an invalid value.");
+                validationResults.Add("Hours Worked is missing or has an invalid value.");
             }
 
             if (result == true) //Only continue if result is still good
@@ -368,12 +379,13 @@ namespace WorkTracker.Controllers
                             AssignedTo = input.AssignedTo,
                             Cost = (decimal)input.Cost,
                             Hours = (int)input.Hours,
-                            ItemDate = (DateTime)input.ItemDate,
+                            ItemDate = dateNow,
                             Name = input.Name,
                             CreatedBy = input.CreatedBy,
                             CreatedOn = dateNow,
                             ModifiedOn = dateNow,
                             Status = (int)newStatus,
+                            WorkDescription = input.WorkDescription,
                             WorkStatus = (int)WorkItemStatus.Status.NotStarted //By default not Started
                         };
                         context.Items.Add(newItem);

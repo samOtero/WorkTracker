@@ -18,17 +18,13 @@ namespace WorkTracker.Models
         public int Id { get; set; }
 
         [Required]
-        [Display(Name = "Work Report Name")]
         public string Name { get; set; }
 
         [Column(TypeName = "money")]
-        [Display(Name = "Amount owed for Work")]
         public decimal Cost { get; set; }
 
-        [Display(Name = "Work Date")]
         public DateTimeOffset ItemDate { get; set; }
 
-        [Display(Name = "Hours Worked")]
         public int Hours { get; set; }
 
         public bool Paid { get; set; }
@@ -36,6 +32,8 @@ namespace WorkTracker.Models
         public int Status { get; set; }
 
         public int WorkStatus { get; set; }
+
+        public string WorkDescription { get; set; }
         
         //User ID
         public int CreatedBy { get; set; }
@@ -45,7 +43,6 @@ namespace WorkTracker.Models
         public DateTimeOffset ModifiedOn { get; set; }
 
         //User ID
-        [Display(Name = "Work Assigned To")]
         public int AssignedTo { get; set; }
 
         public virtual ItemStatus ItemStatu { get; set; }
