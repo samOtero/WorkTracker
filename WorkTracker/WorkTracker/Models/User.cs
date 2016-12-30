@@ -12,8 +12,6 @@ namespace WorkTracker.Models
         public User()
         {
             ItemHistories = new HashSet<ItemHistory>();
-            Items = new HashSet<Item>();
-            Items1 = new HashSet<Item>();
             Notifications = new HashSet<Notification>();
             UserRoles = new HashSet<UserRole>();
         }
@@ -40,12 +38,6 @@ namespace WorkTracker.Models
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ItemHistory> ItemHistories { get; set; }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Item> Items { get; set; }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Item> Items1 { get; set; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Notification> Notifications { get; set; }

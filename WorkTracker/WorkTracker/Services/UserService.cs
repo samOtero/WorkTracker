@@ -21,10 +21,9 @@ namespace WorkTracker.Services
             using (var context = new DbModels())
             {
                 item = context.Items.Where(m => m.Id == id)
-                    .Include(m => m.User)
-                    .Include(m => m.UserAssignedTo)
                     .Include(m => m.ItemHistories)
                     .FirstOrDefault();
+                item.UserAssignedTo = context.Users.Where(m => m.Id == item.AssignedTo).FirstOrDefault();
             }
             return item;
         }
@@ -35,14 +34,20 @@ namespace WorkTracker.Services
             using (var context = new DbModels())
             {
                 items = context.Items.Where(m => ids.Contains(m.AssignedTo))
-                    .Include(m => m.User)
-                    .Include(m => m.UserAssignedTo)
                     .Include(m => m.ItemHistories)
                     .OrderByDescending(m => m.ItemDate)
                     .OrderByDescending(m => m.Status)
                     .ToList();
+
+                //Get users for each item
+                foreach (var item in items)
+                {
+                    item.UserAssignedTo = context.Users.Where(m => m.Id == item.AssignedTo).FirstOrDefault();
+                }
             }
             return items;
+
+            
         }
         #endregion Work Items
 
@@ -134,7 +139,8 @@ namespace WorkTracker.Services
             var noteFormatText = status.description;
             var workItemText = "<span class=\"itemLink\" data-itemid=\"" + note.ItemId + "\">Work Item</span>";
             
-            if (note.Type == (int)Notification.Types.Approved || note.Type == (int)Notification.Types.Denied )
+            if (note.Type == (int)Notification.Types.Approved || note.Type == (int)Notification.Types.Denied || note.Type == (int)Notification.Types.ItemAssignedOff
+                || note.Type == (int)Notification.Types.AssignedTo || note.Type == (int)Notification.Types.ItemChanged)
             {
                 var owners = GetOwners();
                 var owner = owners.First();

@@ -76,18 +76,6 @@ namespace WorkTracker.Models
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<User>()
-                .HasMany(e => e.Items)
-                .WithRequired(e => e.User)
-                .HasForeignKey(e => e.CreatedBy)
-                .WillCascadeOnDelete(false);
-
-            modelBuilder.Entity<User>()
-                .HasMany(e => e.Items1)
-                .WithRequired(e => e.UserAssignedTo)
-                .HasForeignKey(e => e.AssignedTo)
-                .WillCascadeOnDelete(false);
-
-            modelBuilder.Entity<User>()
                 .HasMany(e => e.Notifications)
                 .WithRequired(e => e.User)
                 .HasForeignKey(e => e.AssignedTo)

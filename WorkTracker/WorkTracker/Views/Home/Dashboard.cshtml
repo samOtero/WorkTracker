@@ -32,7 +32,7 @@
         Sort by: Show All
     </div>
 </div>
-
+@Html.AntiForgeryToken()
 @Html.Partial("_WorkItemList", Model.WorkItemListModel)
 
 <script>

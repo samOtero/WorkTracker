@@ -206,9 +206,11 @@
     </Compile>
     <Compile Include="Models\CreateViewModel.cs" />
     <Compile Include="Models\DashboardModel.cs" />
+    <Compile Include="Models\PaidStatusListModel.cs" />
     <Compile Include="Models\ItemStatusListModel.cs" />
     <Compile Include="Models\NotificationBox.cs" />
     <Compile Include="Models\NotificationStatus.cs" />
+    <Compile Include="Models\SaveWorkItemModel.cs" />
     <Compile Include="Models\WorkItemListModel.cs" />
     <Compile Include="Models\WorkItemModel.cs" />
     <Compile Include="Models\WorkItemStatus.cs" />

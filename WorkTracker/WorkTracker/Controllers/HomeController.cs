@@ -67,6 +67,172 @@ namespace WorkTracker.Controllers
         #region WorkItems
 
         /// <summary>
+        /// Save a work item and return the new History Items to display
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public JsonResult SaveWorkItem(SaveWorkItemModel input)
+        {
+            var service = new UserService();
+            var userID = (int)service.GetMyID();
+            var userRole = service.GetUserRole(userID);
+            if (userRole == Role.RoleTypes.Employee) //Employees can't edit items!
+                return Json(new { success = false }, JsonRequestBehavior.AllowGet);
+
+            var item = service.GetWorkItemFromID(input.itemID);
+            var changedStatus = false;
+            var changedDate = false;
+            var changedAssignedTo = false;
+            var changedCost = false;
+            var changedPaidStatus = false;
+            var changedDescription = false;
+
+            var originalStatus = item.Status;
+            var originalDate = item.ItemDate.ToString("M/d/yy");
+            var originalAssignedTo = item.AssignedTo;
+            var originalCost = item.Cost;
+            var originaPaidStatus = item.Paid;
+            var originalDescription = item.WorkDescription;
+
+            //DateCreated
+            var dateNow = DateTimeOffset.Now;
+            var dateNowFormated = dateNow.ToString("M/d/yy h:mm tt");
+
+            //Get approver's name
+            var user = service.GetUser(userID);
+            var creatorName = user.FullName;
+
+            var historyList = new List<string>();
+
+            var postfixHistory = " by " + creatorName + " on " + dateNowFormated + ".";
+
+            if (originalStatus != input.newStatus)
+            {
+                changedStatus = true;
+                historyList.Add("Status changed from \"" + GetApprovalText((ItemStatus.Status)originalStatus) + "\" to \"" + GetApprovalText((ItemStatus.Status)input.newStatus) + "\"" + postfixHistory);
+                item.Status = input.newStatus;
+            }
+
+            var newDate = input.newDate.ToString("M/d/yy");
+            if (originalDate != newDate)
+            {
+                changedDate = true;
+                historyList.Add("Date changed from \"" +originalDate+"\" to \""+newDate+"\""+postfixHistory);
+                item.ItemDate = input.newDate;
+            }
+
+            var originallyAssignedTo = service.GetUser(originalAssignedTo);
+            var newAssignedTo = originallyAssignedTo;
+            if (originalAssignedTo != input.newAssigned)
+            {
+                changedAssignedTo = true;
+                newAssignedTo = service.GetUser(input.newAssigned);
+                item.UserAssignedTo = newAssignedTo;
+                historyList.Add("Assigned from \"" +originallyAssignedTo.FullName+"\" to \""+newAssignedTo.FullName+"\""+postfixHistory);
+                item.AssignedTo = input.newAssigned;
+            }
+
+            var formattedNewCost = Convert.ToDecimal(input.newCost.Replace("$", "").Replace(",", ""));
+            if (originalCost.ToString("C") != formattedNewCost.ToString("C"))
+            {
+                changedCost = true;
+                historyList.Add("Cost changed from \"" + originalCost.ToString("C") + "\" to \"" + formattedNewCost.ToString("C")+"\"" + postfixHistory);
+                item.Cost = formattedNewCost;
+            }
+
+            if (originaPaidStatus != input.newPaid)
+            {
+                changedPaidStatus = true;
+                historyList.Add("Paid Status changed from \"" + GetPaidStatusText(originaPaidStatus) + "\" to \"" + GetPaidStatusText(input.newPaid)+ "\"" + postfixHistory);
+                item.Paid = input.newPaid;
+            }
+
+            if (originalDescription != input.newDescription)
+            {
+                changedDescription = true;
+                historyList.Add("Description changed from \"" + originalDescription + "\' to \"" + input.newDescription+"\"" + postfixHistory);
+                item.WorkDescription = input.newDescription;
+            }
+
+            try
+            {
+                item.User = null; //need to get rid of any attachement
+                item.UserAssignedTo = null;
+                using (var context = new DbModels())
+                {
+                    //context.Items.Attach(item);
+                    context.Entry(item).State = EntityState.Modified;
+
+                    //Create Work Item Histories
+                    foreach (var history in historyList)
+                    {
+                        var newHistory = new ItemHistory()
+                        {
+                            itemId = item.Id,
+                            Note = history,
+                            CreatedBy = userID,
+                            CreatedOn = dateNow,
+                        };
+                        context.ItemHistories.Add(newHistory);
+                    }
+                    
+
+                    Notification newNotification;
+                    //Send to Assigned To user if he is not the creator
+                    if (newAssignedTo.Id != userID)
+                    {
+                        newNotification = new Notification()
+                        {
+                            AssignedTo = item.AssignedTo,
+                            CreatedOn = dateNow,
+                            ItemId = item.Id,
+                            Type = (int)Notification.Types.ItemChanged,
+                            New = true
+                        };
+                        context.Notifications.Add(newNotification);
+                    }
+
+                    if (changedAssignedTo == true)
+                    {
+                        if (newAssignedTo.Id != userID)
+                        {
+                            newNotification = new Notification()
+                            {
+                                AssignedTo = item.AssignedTo,
+                                CreatedOn = dateNow,
+                                ItemId = item.Id,
+                                Type = (int)Notification.Types.AssignedTo,
+                                New = true
+                            };
+                            context.Notifications.Add(newNotification);
+                        }
+                        if (originallyAssignedTo.Id != userID)
+                        {
+                            newNotification = new Notification()
+                            {
+                                AssignedTo = item.AssignedTo,
+                                CreatedOn = dateNow,
+                                ItemId = item.Id,
+                                Type = (int)Notification.Types.ItemAssignedOff,
+                                New = true
+                            };
+                            context.Notifications.Add(newNotification);
+                        }
+                    }
+
+                    context.SaveChanges();
+                }
+            }
+            catch (Exception e)
+            {
+                return Json(new { success = false }, JsonRequestBehavior.AllowGet);
+            }
+
+            
+            return Json(new { success = true, history = historyList }, JsonRequestBehavior.AllowGet);
+        }
+
+        /// <summary>
         /// Deny a work item and return the new History Item to display
         /// </summary>
         /// <param name="itemID"></param>
@@ -226,20 +392,34 @@ namespace WorkTracker.Controllers
             //Get Items from user ids
             List<Item> items = service.GetWorkItemFromUserID(userIds);
 
-            
+            //Status options for Work Item Edit
+            var statusOptionsList = new List<ItemStatusListModel>();
+            statusOptionsList.Add(new ItemStatusListModel() { Text = "Pending Approval", Value = (int)ItemStatus.Status.Pending });
+            statusOptionsList.Add(new ItemStatusListModel() { Text = "Approved", Value = (int)ItemStatus.Status.Approved });
+            statusOptionsList.Add(new ItemStatusListModel() { Text = "Denied", Value = (int)ItemStatus.Status.Denied });
+
+            //Paid Status options for Work Item Edit
+            var paidStatusOptionsList = new List<PaidStatusListModel>();
+            paidStatusOptionsList.Add(new PaidStatusListModel() { Text = "Paid", Value = true });
+            paidStatusOptionsList.Add(new PaidStatusListModel() { Text = "Not Paid", Value = false });
 
             //Create Work Item Model from list
             WorkItemModel itemModel;
             foreach (var item in items)
             {
                 //Create status options for editing work item
-                var statusOptionsList = new List<ItemStatusListModel>();
-                statusOptionsList.Add(new ItemStatusListModel() { Text = "Pending Approval", Value = (int)ItemStatus.Status.Pending });
-                statusOptionsList.Add(new ItemStatusListModel() { Text = "Approved", Value = (int)ItemStatus.Status.Approved });
-                statusOptionsList.Add(new ItemStatusListModel() { Text = "Denied", Value = (int)ItemStatus.Status.Denied });
                 var statusOptions = new SelectList(statusOptionsList, "Value", "Text", item.Status);
+
+                //Create Paid Status options for editing work item
+                var paidOptions = new SelectList(paidStatusOptionsList, "Value", "Text", item.Paid);
+
+                //Create Allowed Users options for editing work item
+                var assignedOptions = new SelectList(allowedUsers, "Id", "FullName", item.AssignedTo);
+
                 itemModel = GetItemModelFromItem(item, canApprove);
                 itemModel.statusOptions = statusOptions;
+                itemModel.paidStatusOptions = paidOptions;
+                itemModel.assignOptions = assignedOptions;
                 model.workItems.Add(itemModel);
             }
             return model;
@@ -267,6 +447,9 @@ namespace WorkTracker.Controllers
             itemModel.approval = GetApprovalText(itemModel.approvalStatus);
             itemModel.time = item.ItemDate.ToString("MM/dd/yy");
             itemModel.assignedTo = item.UserAssignedTo.FirstName + " " + item.UserAssignedTo.LastName;
+            itemModel.assignedToId = item.AssignedTo;
+            itemModel.paid = item.Paid;
+            itemModel.paidString = GetPaidStatusText(item.Paid);
             itemModel.history = new List<string>();
             item.ItemHistories = item.ItemHistories.OrderByDescending(m => m.CreatedOn).ToList(); //Order Item History by descending date
             foreach(var history in item.ItemHistories)
@@ -300,6 +483,16 @@ namespace WorkTracker.Controllers
 
             }
             return approvalText;
+        }
+
+        private string GetPaidStatusText(bool paid)
+        {
+            var paidStatus = "Paid";
+            if (paid == false)
+            {
+                paidStatus = "Not Paid";
+            }
+            return paidStatus;
         }
 
         #endregion WorkItems

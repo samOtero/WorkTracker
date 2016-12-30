@@ -50,9 +50,9 @@ namespace WorkTracker.Models
         public virtual WorkItemStatus WorkItemStatu { get; set; }
 
         public virtual List<ItemHistory> ItemHistories { get; set; }
-
+        [NotMapped]
         public virtual User User { get; set; }
-
+        [NotMapped]
         public virtual User UserAssignedTo { get; set; }
     }
 }

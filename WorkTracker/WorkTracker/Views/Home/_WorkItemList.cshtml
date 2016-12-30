@@ -26,6 +26,9 @@
     .showMeInline {
         display:inline;
     }
+    li.showMeInline {
+        display:block;
+    }
 </style>
 <div class="row">
     <div class="col-xs-12" id="workItemContainer">
@@ -43,12 +46,25 @@
 
         //Edit Work Item Section
 
+            //Add datepicker to edit fields
+            $(".editDateBox").each(function () {
+                $(this).datepicker();
+                $(this).prop('readonly', true); //Set as read only for mobile
+            });
+
             //When Edit button is clicked for a Work Item
             $(document).on('click', '.editWorkItemBtn', function () {
                 var itemID = $(this).data('itemid');
                 //Show or hide edit details for this item
-                $(".editSection" + itemID).toggleClass('hideMe showMeInline');                
+                $(".editSection" + itemID).toggleClass('hideMe showMeInline');
             });
+
+            //When Save Changes button is clicked for a Work Item
+            $(document).on('click', '.saveWorkItemBtn', function () {
+                var itemID = $(this).data('itemid');
+                saveWorkItem(itemID)
+            });
+        //End Edit Work Item Section
 
         //Deny Work Item Section
 
@@ -111,7 +127,7 @@
             var confirmationText = 'Denying Work Item... Please Wait...';
             updateWorkItemField(baseName, isModal, confirmationText, true);
 
-            $.ajax({
+            $.post({
                 url: "DenyWorkItem",
                 data: { itemID: itemID },
                 success: function (result) {
@@ -152,7 +168,7 @@
             var confirmationText = 'Approving Work Item... Please Wait...';
             updateWorkItemField(baseName, isModal, confirmationText, true);
 
-            $.ajax({
+            $.post({
                 url: "ApproveWorkItem",
                 data: { itemID: itemID },
                 success: function (result) {
@@ -184,6 +200,48 @@
         }
 
     //End Approve Work Item Functions Section
+        
+    //Save Work Item Functions Section
+        function saveWorkItem(itemID) {
+            var isModal = false;
+            var baseName = "#workItemEditLine" + itemID;
+            var confirmationText = 'Saving your changes... Please Wait...';
+            updateWorkItemField(baseName, isModal, confirmationText, true);
+
+            $.post({
+                url: "SaveWorkItem",
+                data: {
+                    itemID: itemID,
+                    newStatus: $("#statusOptions" + itemID).val(),
+                    newDate: $("#dateBox" + itemID).val(),
+                    newAssigned: $("#assignedBox" + itemID).val(),
+                    newCost: $("#costBox" + itemID).val(),
+                    newPaid: $("#paidStatusOptions" + itemID).val(),
+                    newDescription: $("#descriptionBox" + itemID).val(),
+                    '__RequestVerificationToken': $('input[name=__RequestVerificationToken]').val()
+                },
+                success: function (result) {
+                    if (result.success == true) {
+                        //var statusName = "#workItemStatusLine" + itemID;
+                        //var statusChangeText = "Status: Approved";
+                        //confirmationText = "Success! Work Item Approved!";
+                        //updateWorkItemField(statusName, isModal, statusChangeText, true);
+                        //changeListGroupItemColor(statusName, "list-group-item-success")
+                        //updateWorkItemField(baseName, isModal, confirmationText, true);
+                        //var historyItem = result.history;
+                        //addHistoryItem(itemID, historyItem);
+                    } else {
+                        confirmationText = "Error! Refresh page and try again.";
+                        updateWorkItemField(baseName, isModal, confirmationText, true);
+                    }
+                },
+                error: function (result) {
+                    confirmationText = "Error! Refresh page and try again.";
+                    updateWorkItemField(baseName, isModal, confirmationText, true);
+                }
+            });
+        }
+    //End Save Work Item Functions Section
 
     //Generic functions
 

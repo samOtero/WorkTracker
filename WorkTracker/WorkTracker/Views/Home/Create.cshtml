@@ -90,7 +90,7 @@
             estimateValue = estimateValue.replace(/,/g, "");
             $("#Hours").val(estimateValue);
             $("#Cost").val(costValue);
-            $.ajax(
+            $.post(
                 {
                     url: "CreateWorkItem",
                     data: $("#createForm").serialize(),

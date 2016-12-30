@@ -13,7 +13,9 @@ namespace WorkTracker.Models
             AssignedTo = 1,
             Created = 2,
             Approved = 3,
-            Denied = 4
+            Denied = 4,
+            ItemChanged = 5,
+            ItemAssignedOff = 6
         }
         public int Id { get; set; }
 
