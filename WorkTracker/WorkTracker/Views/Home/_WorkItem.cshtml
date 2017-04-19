@@ -49,12 +49,16 @@
             {
                 if (Model.approvalStatus == ItemStatus.Status.Pending)
                 {
-                    <li class="list-group-item" id="workItemApproveLine@(Model.itemID)@(forModal)"><button data-itemid="@(Model.itemID)" data-ismodal="@(isModal)" class="btn btn-success workItemApproveBtn">Approve</button> <button data-itemid="@(Model.itemID)" data-ismodal="@(isModal)" class="btn btn-danger workItemDenyBtn">Deny</button></li>
+                    <li class="list-group-item" id="workItemApproveLine@(Model.itemID)@(forModal)"><button data-itemid="@(Model.itemID)" data-ismodal="@(isModal)" class="btn btn-success workItemApproveBtn">Approve</button> <button data-itemid="@(Model.itemID)" data-ismodal="@(isModal)" class="btn btn-danger workItemDenyBtn">Deny</button>
+                    @if (Model.paid == false)
+                    {
+                        <button data-itemid="@(Model.itemID)" data-ismodal="@(isModal)" class="btn btn-success workItemPaidBtn">Paid</button>
+                    }
+
+                    </li>
                 }
-            }
-            @if (Model.canApprove == true)
-            {
-                    <li class="list-group-item editSection@(Model.itemID) hideMe" id="workItemEditLine@(Model.itemID)@(forModal)"><button data-itemid="@(Model.itemID)" data-ismodal="@(isModal)" class="btn btn-danger saveWorkItemBtn">Save Changes</button></li>
+                @*Save changes button - hidden but only add it if you can approve this work item*@
+                <li class="list-group-item editSection@(Model.itemID) hideMe" id="workItemEditLine@(Model.itemID)@(forModal)"><button data-itemid="@(Model.itemID)" data-ismodal="@(isModal)" class="btn btn-danger saveWorkItemBtn">Save Changes</button></li>
             }
             <li class="list-group-item">
                 <div class="panel panel-primary" style="">

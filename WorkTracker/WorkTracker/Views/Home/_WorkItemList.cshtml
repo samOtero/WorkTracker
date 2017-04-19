@@ -45,7 +45,12 @@
     $(document).ready(function () {
 
         //Edit Work Item Section
-
+            
+            //Add popover to buttons
+        $(".workItemApproveBtn").each(function () {
+            $(this).popover({title: "Test Title", content: "Test Content", html: true, placement: "auto bottom"});
+        });
+            
             //Add datepicker to edit fields
             $(".editDateBox").each(function () {
                 $(this).datepicker();
@@ -89,12 +94,12 @@
         //Approve Work Item Section
 
             //When Approve button is clicked for a Pending approval Work Item
-            $(document).on('click', '.workItemApproveBtn', function () {
-                var itemID = $(this).data('itemid');
-                //Check if it comes from modal
-                var isModal = $(this).data('ismodal');
-                showApproveConfirmation(itemID, isModal);
-            });
+            //$(document).on('click', '.workItemApproveBtn', function () {
+            //    var itemID = $(this).data('itemid');
+            //    //Check if it comes from modal
+            //    var isModal = $(this).data('ismodal');
+            //    showApproveConfirmation(itemID, isModal);
+            //});
 
             //When Yes is pressed on the Approve Confirmation
             $(document).on('click', '.workItemApproveConfirmed', function () {
