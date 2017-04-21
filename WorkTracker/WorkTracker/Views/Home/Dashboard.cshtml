@@ -34,7 +34,7 @@
 </div>
 @Html.AntiForgeryToken()
 @Html.Partial("_WorkItemList", Model.WorkItemListModel)
-
+<script type="text/javascript" src="~/Scripts/jquery-notify.min.js"></script>
 <script>
     //toggle Arrow when clicked
     $(document).on('click', '.toggleArrowContainer', function () {
@@ -47,4 +47,15 @@
             $(collapseTarget).collapse('toggle');
         }
     });
+
+    //Create Notification on top of the window
+    function createNotification(text, type) {
+        $.notify.create(text, {
+            appendTo: '.body-content',
+            sticky: false,
+            adjustScroll: true,
+            type: type,
+            style: 'box'
+        });
+    }
 </script>

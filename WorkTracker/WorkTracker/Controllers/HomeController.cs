@@ -86,6 +86,7 @@ namespace WorkTracker.Controllers
             var changedCost = false;
             var changedPaidStatus = false;
             var changedDescription = false;
+            var needUpdate = false;
 
             var originalStatus = item.Status;
             var originalDate = item.ItemDate.ToString("M/d/yy");
@@ -102,98 +103,112 @@ namespace WorkTracker.Controllers
             var user = service.GetUser(userID);
             var creatorName = user.FullName;
 
-            var historyList = new List<string>();
+            var historyString = "";
 
             var postfixHistory = " by " + creatorName + " on " + dateNowFormated + ".";
 
-            if (originalStatus != input.newStatus)
-            {
-                changedStatus = true;
-                historyList.Add("Status changed from \"" + GetApprovalText((ItemStatus.Status)originalStatus) + "\" to \"" + GetApprovalText((ItemStatus.Status)input.newStatus) + "\"" + postfixHistory);
-                item.Status = input.newStatus;
-            }
+            //if (originalStatus != input.newStatus)
+            //{
+            //    changedStatus = true;
 
-            var newDate = input.newDate.ToString("M/d/yy");
-            if (originalDate != newDate)
-            {
-                changedDate = true;
-                historyList.Add("Date changed from \"" +originalDate+"\" to \""+newDate+"\""+postfixHistory);
-                item.ItemDate = input.newDate;
-            }
+            //    if (string.IsNullOrWhiteSpace(historyString))
+            //        historyString += "<br/>";
+
+            //    historyString += "Status changed from \"" + GetApprovalText((ItemStatus.Status)originalStatus) + "\" to \"" + GetApprovalText((ItemStatus.Status)input.newStatus) + "\"";
+            //    item.Status = input.newStatus;
+            //}
+
+            //var newDate = input.newDate.ToString("M/d/yy");
+            //if (originalDate != newDate)
+            //{
+            //    changedDate = true;
+
+            //    if (string.IsNullOrWhiteSpace(historyString))
+            //        historyString += "<br/>";
+
+            //    historyString += "Date changed from \"" +originalDate+"\" to \""+newDate+"\"";
+            //    item.ItemDate = input.newDate;
+            //}
 
             var originallyAssignedTo = service.GetUser(originalAssignedTo);
             var newAssignedTo = originallyAssignedTo;
             if (originalAssignedTo != input.newAssigned)
             {
+                needUpdate = true;
                 changedAssignedTo = true;
+
+                if (!string.IsNullOrWhiteSpace(historyString))
+                    historyString += "<br/>";
+
                 newAssignedTo = service.GetUser(input.newAssigned);
                 item.UserAssignedTo = newAssignedTo;
-                historyList.Add("Assigned from \"" +originallyAssignedTo.FullName+"\" to \""+newAssignedTo.FullName+"\""+postfixHistory);
+                historyString += "Assigned from \"" +originallyAssignedTo.FullName+"\" to \""+newAssignedTo.FullName+"\"";
                 item.AssignedTo = input.newAssigned;
             }
 
             var formattedNewCost = Convert.ToDecimal(input.newCost.Replace("$", "").Replace(",", ""));
             if (originalCost.ToString("C") != formattedNewCost.ToString("C"))
             {
+                needUpdate = true;
                 changedCost = true;
-                historyList.Add("Cost changed from \"" + originalCost.ToString("C") + "\" to \"" + formattedNewCost.ToString("C")+"\"" + postfixHistory);
+
+                if (!string.IsNullOrWhiteSpace(historyString))
+                    historyString += "<br/>";
+
+                historyString += "Cost changed from \"" + originalCost.ToString("C") + "\" to \"" + formattedNewCost.ToString("C")+"\"";
                 item.Cost = formattedNewCost;
             }
 
-            if (originaPaidStatus != input.newPaid)
-            {
-                changedPaidStatus = true;
-                historyList.Add("Paid Status changed from \"" + GetPaidStatusText(originaPaidStatus) + "\" to \"" + GetPaidStatusText(input.newPaid)+ "\"" + postfixHistory);
-                item.Paid = input.newPaid;
-            }
+            //if (originaPaidStatus != input.newPaid)
+            //{
+            //    changedPaidStatus = true;
+
+            //    if (string.IsNullOrWhiteSpace(historyString))
+            //        historyString += "<br/>";
+
+            //    historyString += "Paid Status changed from \"" + GetPaidStatusText(originaPaidStatus) + "\" to \"" + GetPaidStatusText(input.newPaid)+ "\"";
+            //    item.Paid = input.newPaid;
+            //}
 
             if (originalDescription != input.newDescription)
             {
+                needUpdate = true;
                 changedDescription = true;
-                historyList.Add("Description changed from \"" + originalDescription + "\' to \"" + input.newDescription+"\"" + postfixHistory);
+
+                if (!string.IsNullOrWhiteSpace(historyString))
+                    historyString += "<br/>";
+
+                historyString += "Description changed from \"" + originalDescription + "\' to \"" + input.newDescription+"\"";
                 item.WorkDescription = input.newDescription;
             }
 
-            try
-            {
-                item.User = null; //need to get rid of any attachement
-                item.UserAssignedTo = null;
-                using (var context = new DbModels())
-                {
-                    //context.Items.Attach(item);
-                    context.Entry(item).State = EntityState.Modified;
+            if (!string.IsNullOrWhiteSpace(historyString))
+                historyString += "<br/>" + postfixHistory;
 
-                    //Create Work Item Histories
-                    foreach (var history in historyList)
+            if (needUpdate == true)
+            {
+                try
+                {
+                    item.User = null; //need to get rid of any attachement
+                    item.UserAssignedTo = null;
+                    using (var context = new DbModels())
                     {
+                        //context.Items.Attach(item);
+                        context.Entry(item).State = EntityState.Modified;
+
+                        //Create Work Item History item
                         var newHistory = new ItemHistory()
                         {
                             itemId = item.Id,
-                            Note = history,
+                            Note = historyString,
                             CreatedBy = userID,
                             CreatedOn = dateNow,
                         };
                         context.ItemHistories.Add(newHistory);
-                    }
-                    
 
-                    Notification newNotification;
-                    //Send to Assigned To user if he is not the creator
-                    if (newAssignedTo.Id != userID)
-                    {
-                        newNotification = new Notification()
-                        {
-                            AssignedTo = item.AssignedTo,
-                            CreatedOn = dateNow,
-                            ItemId = item.Id,
-                            Type = (int)Notification.Types.ItemChanged,
-                            New = true
-                        };
-                        context.Notifications.Add(newNotification);
-                    }
 
-                    if (changedAssignedTo == true)
-                    {
+                        Notification newNotification;
+                        //Send to Assigned To user if he is not the creator
                         if (newAssignedTo.Id != userID)
                         {
                             newNotification = new Notification()
@@ -201,35 +216,50 @@ namespace WorkTracker.Controllers
                                 AssignedTo = item.AssignedTo,
                                 CreatedOn = dateNow,
                                 ItemId = item.Id,
-                                Type = (int)Notification.Types.AssignedTo,
+                                Type = (int)Notification.Types.ItemChanged,
                                 New = true
                             };
                             context.Notifications.Add(newNotification);
                         }
-                        if (originallyAssignedTo.Id != userID)
-                        {
-                            newNotification = new Notification()
-                            {
-                                AssignedTo = item.AssignedTo,
-                                CreatedOn = dateNow,
-                                ItemId = item.Id,
-                                Type = (int)Notification.Types.ItemAssignedOff,
-                                New = true
-                            };
-                            context.Notifications.Add(newNotification);
-                        }
-                    }
 
-                    context.SaveChanges();
+                        if (changedAssignedTo == true)
+                        {
+                            if (newAssignedTo.Id != userID)
+                            {
+                                newNotification = new Notification()
+                                {
+                                    AssignedTo = item.AssignedTo,
+                                    CreatedOn = dateNow,
+                                    ItemId = item.Id,
+                                    Type = (int)Notification.Types.AssignedTo,
+                                    New = true
+                                };
+                                context.Notifications.Add(newNotification);
+                            }
+                            if (originallyAssignedTo.Id != userID)
+                            {
+                                newNotification = new Notification()
+                                {
+                                    AssignedTo = item.AssignedTo,
+                                    CreatedOn = dateNow,
+                                    ItemId = item.Id,
+                                    Type = (int)Notification.Types.ItemAssignedOff,
+                                    New = true
+                                };
+                                context.Notifications.Add(newNotification);
+                            }
+                        }
+
+                        context.SaveChanges();
+                    }
+                }
+                catch (Exception e)
+                {
+                    return Json(new { success = false }, JsonRequestBehavior.AllowGet);
                 }
             }
-            catch (Exception e)
-            {
-                return Json(new { success = false }, JsonRequestBehavior.AllowGet);
-            }
-
             
-            return Json(new { success = true, history = historyList }, JsonRequestBehavior.AllowGet);
+            return Json(new { success = true, history = historyString }, JsonRequestBehavior.AllowGet);
         }
 
         /// <summary>

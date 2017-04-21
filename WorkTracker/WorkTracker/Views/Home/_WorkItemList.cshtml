@@ -41,6 +41,8 @@
     </div>
 </div>
 
+@Html.Partial("_saveModal")
+
 <script>
     $(document).ready(function () {
 
@@ -48,7 +50,12 @@
             
             //Add popover to buttons
         $(".workItemApproveBtn").each(function () {
-            $(this).popover({title: "Test Title", content: "Test Content", html: true, placement: "auto bottom"});
+            var itemID = $(this).data('itemid');
+            var isModal = $(this).data('ismodal');
+            var idName = $(this).parent().attr('id');            
+            var approveYesBtn = '<button data-itemid="' + itemID + '" data-ismodal="' + isModal + '" class="btn btn-success workItemApproveConfirmed">Approve</button>';
+            var approveNoBtn = ' <button class="btn btn-danger" onclick="$(&quot;#' + idName + ' .workItemApproveBtn&quot;).popover(&quot;hide&quot;);">No</button>';
+            $(this).popover({title: "Are you sure?", content: approveYesBtn+approveNoBtn, html: true, placement: "auto bottom"});
         });
             
             //Add datepicker to edit fields
@@ -208,10 +215,11 @@
         
     //Save Work Item Functions Section
         function saveWorkItem(itemID) {
+            $("#saveModal").modal({ backdrop: "static" });
             var isModal = false;
-            var baseName = "#workItemEditLine" + itemID;
-            var confirmationText = 'Saving your changes... Please Wait...';
-            updateWorkItemField(baseName, isModal, confirmationText, true);
+            //var baseName = "#workItemEditLine" + itemID;
+            //var confirmationText = 'Saving your changes... Please Wait...';
+           // updateWorkItemField(baseName, isModal, confirmationText, true);
 
             $.post({
                 url: "SaveWorkItem",
@@ -226,23 +234,24 @@
                     '__RequestVerificationToken': $('input[name=__RequestVerificationToken]').val()
                 },
                 success: function (result) {
+                    $("#saveModal").modal("hide"); //Hide Save Modal once we have responce
                     if (result.success == true) {
+                        createNotification("Work Item was saved!", "success");
                         //var statusName = "#workItemStatusLine" + itemID;
                         //var statusChangeText = "Status: Approved";
                         //confirmationText = "Success! Work Item Approved!";
                         //updateWorkItemField(statusName, isModal, statusChangeText, true);
                         //changeListGroupItemColor(statusName, "list-group-item-success")
                         //updateWorkItemField(baseName, isModal, confirmationText, true);
-                        //var historyItem = result.history;
-                        //addHistoryItem(itemID, historyItem);
+                        var historyItem = result.history;
+                        addHistoryItem(itemID, historyItem);
                     } else {
-                        confirmationText = "Error! Refresh page and try again.";
-                        updateWorkItemField(baseName, isModal, confirmationText, true);
+                        createNotification("Error: Could not save Work Item.", "error");
                     }
                 },
                 error: function (result) {
-                    confirmationText = "Error! Refresh page and try again.";
-                    updateWorkItemField(baseName, isModal, confirmationText, true);
+                    $("#saveModal").modal("hide"); //Hide Save Modal once we have responce
+                    createNotification("Error: Could not save Work Item.", "error");
                 }
             });
         }

@@ -39,34 +39,44 @@
         }
    </div>
         <ul class="list-group">
-            <li class="list-group-item @(paneltype)" id="workItemStatusLine@(Model.itemID)@(forModal)">Status: @(Model.approval) <div class="editSection@(Model.itemID) hideMe">@Html.DropDownList("statusOptions" + Model.itemID, Model.statusOptions, new { @class = "form-control", style = "display: inline" })</div></li>
-            <li class="list-group-item">Date: @(Model.time) <div class="editSection@(Model.itemID) hideMe">@Html.TextBox("dateBox" + Model.itemID, Model.time, new { @class = "form-control editDateBox", style = "display: inline" })</div></li>
+            <li class="list-group-item @(paneltype)" id="workItemStatusLine@(Model.itemID)@(forModal)">Status: @(Model.approval)</li>
+            <li class="list-group-item">Date: @(Model.time)</li>
             <li class="list-group-item">Done by: @(Model.assignedTo) <div class="editSection@(Model.itemID) hideMe">@Html.DropDownList("assignedBox" + Model.itemID, Model.assignOptions, new { @class = "form-control", style = "display: inline" })</div></li>
             <li class="list-group-item">Amount Owed: @(Model.cost) <div class="editSection@(Model.itemID) hideMe">@Html.TextBox("costBox" + Model.itemID, Model.cost, new { @class = "form-control", style = "display: inline" })</div></li>
-            <li class="list-group-item @(paidPanelType)">Paid Status: @(Model.paidString) <div class="editSection@(Model.itemID) hideMe">@Html.DropDownList("paidStatusOptions" + Model.itemID, Model.paidStatusOptions, new { @class = "form-control", style = "display: inline" })</div></li>
+            <li class="list-group-item @(paidPanelType)">Paid Status: @(Model.paidString)</li>
             <li class="list-group-item">Description: @(Model.description) <div class="editSection@(Model.itemID) hideMe">@Html.TextArea("descriptionBox"+Model.itemID, Model.description, new { @class="form-control", style = "display: inline" })</div></li>
             @if (Model.canApprove == true)
             {
-                if (Model.approvalStatus == ItemStatus.Status.Pending)
-                {
-                    <li class="list-group-item" id="workItemApproveLine@(Model.itemID)@(forModal)"><button data-itemid="@(Model.itemID)" data-ismodal="@(isModal)" class="btn btn-success workItemApproveBtn">Approve</button> <button data-itemid="@(Model.itemID)" data-ismodal="@(isModal)" class="btn btn-danger workItemDenyBtn">Deny</button>
+                @*Save changes button - hidden but only add it if you can approve this work item*@
+                <li class="list-group-item editSection@(Model.itemID) hideMe" id="workItemEditLine@(Model.itemID)@(forModal)"><button data-itemid="@(Model.itemID)" data-ismodal="@(isModal)" class="btn btn-danger saveWorkItemBtn">Save Changes</button></li>
+                <li class="list-group-item" id="workItemApproveLine@(Model.itemID)@(forModal)">
+                    @if (Model.approvalStatus == ItemStatus.Status.Pending || Model.approvalStatus == ItemStatus.Status.Denied)
+                    {
+                    <button data-itemid="@(Model.itemID)" data-ismodal="@(isModal)" class="btn btn-success workItemApproveBtn">Approve</button> 
+                    }
+                    @if (Model.approvalStatus == ItemStatus.Status.Pending || Model.approvalStatus == ItemStatus.Status.Approved)
+                    {
+                     <button data-itemid="@(Model.itemID)" data-ismodal="@(isModal)" class="btn btn-success workItemDenyBtn">Deny</button>   
+                    }
                     @if (Model.paid == false)
                     {
                         <button data-itemid="@(Model.itemID)" data-ismodal="@(isModal)" class="btn btn-success workItemPaidBtn">Paid</button>
                     }
-
-                    </li>
-                }
-                @*Save changes button - hidden but only add it if you can approve this work item*@
-                <li class="list-group-item editSection@(Model.itemID) hideMe" id="workItemEditLine@(Model.itemID)@(forModal)"><button data-itemid="@(Model.itemID)" data-ismodal="@(isModal)" class="btn btn-danger saveWorkItemBtn">Save Changes</button></li>
+                    else
+                    {
+                        <button data-itemid="@(Model.itemID)" data-ismodal="@(isModal)" class="btn btn-success workItemNotPaidBtn">Not Paid</button>
+                    }
+                </li>
+                
             }
+                
             <li class="list-group-item">
                 <div class="panel panel-primary" style="">
                     <div class="panel-heading toggleArrowContainer" onclick="void(0)" data-target="#historyGroup@(Model.itemID)@(forModal)">History <span class="arrowIcon glyphicon glyphicon-chevron-up pull-right"></span></div>
                     <ul class="list-group collapse" id="historyGroup@(Model.itemID)@(forModal)">
                         @foreach (var history in Model.history)
                         {
-                            <li class="list-group-item">@(history)</li>
+                            <li class="list-group-item">@Html.Raw(history)</li>
                         }
                     </ul>
                 </div>
