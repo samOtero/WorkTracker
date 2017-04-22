@@ -11,26 +11,23 @@
     }
     ViewBag.Title = roleTitleName + " Dashboard";
 }
+@*@Html.Partial("_Notifications", Model.NotificationModel)*@
 
 <div class="row">
     <h1>@(roleTitleName) Dashboard</h1>
+    <div class="col-xs-12">
+        <a href="Create" type="button" class="btn btn-success">Create New</a>
+        @if (Model.userRole == Role.RoleTypes.Admin || Model.userRole == Role.RoleTypes.Owner)
+        {
+            <a href="Report" type="button" class="btn btn-success">Reports</a>
+        }
+        
+    </div>
+    <div class="col-xs-12">
+        <h3>Daily Work Report Items</h3>
+    </div>
 </div>
 <div class="row" style="padding-bottom:10px">
-    <div class="col-xs-12">
-        <a href="Create" type="button" class="btn btn-success">Create New Daily Work Report</a>
-    </div>
-</div>
-@Html.Partial("_Notifications", Model.NotificationModel)
-
-<div class="row">
-    <div class="col-xs-12">
-        <h3>Work Items</h3>
-    </div>
-</div>
-<div class="row" style="padding-bottom:10px">
-    <div class="col-xs-12">
-        Sort by: Show All
-    </div>
 </div>
 @Html.AntiForgeryToken()
 @Html.Partial("_WorkItemList", Model.WorkItemListModel)

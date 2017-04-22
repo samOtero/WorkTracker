@@ -1,0 +1,77 @@
+﻿@using WorkTracker.Models
+@model WorkItemReportModel
+@{
+    ViewBag.Title = "Report";
+}
+<style>
+    .list-group-item-success {
+        color: #3c763d;
+        background-color: #dff0d8;
+    }
+    .list-group-item-danger {
+        color: #a94442;
+        background-color: #f2dede;
+    }
+    .list-group-item-warning {
+        color: #8a6d3b;
+        background-color: #fcf8e3;
+    }
+    .hideMe {
+        display:none;
+    }
+    .showMeInline {
+        display:inline;
+    }
+    li.showMeInline {
+        display:block;
+    }
+</style>
+<div class="row">
+    <h1>Report</h1>
+    <h4>Showing each employee that is owed for their approved work.</h4>
+</div>
+<div class="row">
+    <div class="col-xs-12" id="reportItemContainer">
+        @{ bool haveReportItems = false; }
+        @foreach (var item in Model.reportItems)
+        {
+            if (item.totalOwed > 0)
+            {
+                haveReportItems = true;
+                <div class="col-md-6" id="reportItemContainer@(item.userId)">
+                    @Html.Partial("_ReportItem", item)
+                </div>
+            }
+        }
+        @if(haveReportItems == false)
+        {
+            @:No money owed to any Employee. Woohoo!
+        }
+    </div>
+</div>
+@Html.AntiForgeryToken()
+<script type="text/javascript" src="~/Scripts/jquery-notify.min.js"></script>
+<script>
+    //toggle Arrow when clicked
+    $(document).on('click', '.toggleArrowContainer', function () {
+        var myIcon = $(this).find('.arrowIcon');
+        myIcon.toggleClass("glyphicon-chevron-down glyphicon-chevron-up");
+
+        //try to toggle the collapse, this will fix the Iphone/Ipad issue with the collapse not working
+        var collapseTarget = $(this).data('target');
+        if (collapseTarget != null) {
+            $(collapseTarget).collapse('toggle');
+        }
+    });
+
+    //Create Notification on top of the window
+    function createNotification(text, type) {
+        $.notify.create(text, {
+            appendTo: '.body-content',
+            sticky: false,
+            adjustScroll: true,
+            type: type,
+            style: 'box'
+        });
+    }
+</script>

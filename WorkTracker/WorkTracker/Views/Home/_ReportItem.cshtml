@@ -1,0 +1,32 @@
+﻿@using WorkTracker.Models
+@using System.Globalization
+@model WorkItemReportItemModel
+
+<div class="col-xs-12">
+    <div class="panel panel-primary">
+        <div class="panel-heading clearfix">
+        <h4 class="pull-left">@(Model.userFullName): @(Model.totalOwed.ToString("C", CultureInfo.CurrentCulture))</h4>
+        @if (Model.totalOwed > 0)
+        {
+            <div class="pull-right">
+                <button class="btn btn-success payWorkItemBtn" data-itemid="@(Model.userId)">
+                    <span class="glyphicon glyphicon-ok-circle" aria-hidden="true"></span> Paid
+                </button>
+            </div>
+        }
+   </div>
+        <ul class="list-group">
+            @foreach (var workItem in Model.workItems)
+            {
+                var paidPanelType = "list-group-item-danger";
+                if (workItem.paid == true)
+                {
+                    paidPanelType = "list-group-item-success";
+                }
+                <li class="list-group-item @(paidPanelType)">@(workItem.title) - @(workItem.cost) - @(workItem.time)</li>
+            }
+        </ul>
+    </div>
+
+</div>
+

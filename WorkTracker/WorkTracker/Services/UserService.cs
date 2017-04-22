@@ -36,7 +36,7 @@ namespace WorkTracker.Services
                 items = context.Items.Where(m => ids.Contains(m.AssignedTo))
                     .Include(m => m.ItemHistories)
                     .OrderByDescending(m => m.ItemDate)
-                    .OrderByDescending(m => m.Status)
+                    //.OrderByDescending(m => m.Status)
                     .ToList();
 
                 //Get users for each item

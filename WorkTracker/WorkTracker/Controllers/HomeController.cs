@@ -36,6 +36,43 @@ namespace WorkTracker.Controllers
             return View();
         }
         
+        public ActionResult Report()
+        {
+            if (!checkAuthentication())
+            {
+                return RedirectToAction("Index");
+            }
+            var userService = new UserService();
+            var userID = (int)userService.GetMyID();
+            var userRole = userService.GetUserRole(userID);
+            var model = new WorkItemReportModel();
+            var workItemListModel = GetWorkItemListModel(userService, userID, userRole);
+
+            model.reportItems = new List<WorkItemReportItemModel>();
+            foreach(var workItem in workItemListModel.workItems)
+            {
+                var userId = workItem.assignedToId;
+                var reportItem = model.reportItems.Where(m => m.userId == userId).FirstOrDefault();
+                if (reportItem == null)
+                {
+                    reportItem = new WorkItemReportItemModel()
+                    {
+                        userId = workItem.assignedToId,
+                        userFullName = workItem.assignedTo,
+                        workItems = new List<WorkItemModel>(),
+                        totalOwed = 0
+                    };
+                    model.reportItems.Add(reportItem);
+                }
+                if (workItem.paid == false && workItem.approvalStatus == ItemStatus.Status.Approved)
+                {
+                    reportItem.totalOwed += Convert.ToDouble(workItem.cost.Replace("$", ""));
+                    reportItem.workItems.Add(workItem);
+                }  
+            }
+
+            return View(model);
+        }
 
         public ActionResult Dashboard()
         {
@@ -67,7 +104,7 @@ namespace WorkTracker.Controllers
         #region WorkItems
 
         /// <summary>
-        /// Save a work item and return the new History Items to display
+        /// Save a work item and return the update Work Item Partial to display
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -259,7 +296,7 @@ namespace WorkTracker.Controllers
                 }
             }
             
-            return Json(new { success = true, history = historyString }, JsonRequestBehavior.AllowGet);
+            return GetWorkItemPartial(input.itemID,  input.isModal); //Get Html Partial for Work Item
         }
 
         /// <summary>
@@ -323,7 +360,81 @@ namespace WorkTracker.Controllers
             {
                 return Json(new { success = false }, JsonRequestBehavior.AllowGet);
             }
-            return Json(new { success = true, history = historyText }, JsonRequestBehavior.AllowGet);
+            return GetWorkItemPartial(itemID, false); //Get Html Partial for Work Item
+
+        }
+
+        /// <summary>
+        /// Mark a work item as paid and return the new Work Item partial to display
+        /// </summary>
+        /// <param name="itemID"></param>
+        /// <returns></returns>
+        public JsonResult PaidWorkItem(int itemID, bool newStatus)
+        {
+            var service = new UserService();
+            var userID = (int)service.GetMyID();
+            var userRole = service.GetUserRole(userID);
+            if (userRole == Role.RoleTypes.Employee) //Employees can't approve item!
+                return Json(new { success = false }, JsonRequestBehavior.AllowGet);
+
+            var item = service.GetWorkItemFromID(itemID);
+            item.Paid = newStatus;
+            
+
+            //DateCreated
+            var dateNow = DateTimeOffset.Now;
+            var dateNowFormated = dateNow.ToString("M/d/yy h:mm tt");
+
+            //Get approver's name
+            var user = service.GetUser(userID);
+            var creatorName = user.FullName;
+            var postfix = " by " + creatorName + " on " + dateNowFormated + ".";
+            var historyText = "Paid Status changed from \"" + GetPaidStatusText(!item.Paid) + "\" to \"" + GetPaidStatusText(item.Paid) + "\"";
+
+            //Set to Approve if we set to Paid
+            if (newStatus == true && item.Status != (int)ItemStatus.Status.Approved)
+            {
+                item.Status = (int)ItemStatus.Status.Approved;
+                historyText += "<br/>Approved";
+            }
+            historyText += postfix;
+            try
+            {
+                using (var context = new DbModels())
+                {
+                    context.Items.Attach(item);
+                    context.Entry(item).State = EntityState.Modified;
+
+                    //Create Work Item History
+                    var newHistory = new ItemHistory()
+                    {
+                        itemId = item.Id,
+                        Note = historyText,
+                        CreatedBy = userID,
+                        CreatedOn = dateNow,
+                    };
+                    context.ItemHistories.Add(newHistory);
+
+                    Notification newNotification;
+                    //Send to Assigned To user if he is not the creator
+                    newNotification = new Notification()
+                    {
+                        AssignedTo = item.AssignedTo,
+                        CreatedOn = dateNow,
+                        ItemId = item.Id,
+                        Type = (int)Notification.Types.Approved,
+                        New = true
+                    };
+                    context.Notifications.Add(newNotification);
+
+                    context.SaveChanges();
+                }
+            }
+            catch (Exception e)
+            {
+                return Json(new { success = false }, JsonRequestBehavior.AllowGet);
+            }
+            return GetWorkItemPartial(itemID, false); //Get Html Partial for Work Item
 
         }
 
@@ -388,21 +499,46 @@ namespace WorkTracker.Controllers
             {
                 return Json(new { success = false }, JsonRequestBehavior.AllowGet);
             }
-            return Json(new { success = true, history = historyText }, JsonRequestBehavior.AllowGet);
+            return GetWorkItemPartial(itemID, false); //Get Html Partial for Work Item
 
         }
 
-        public JsonResult GetWorkItemPartial(int itemID)
+        /// <summary>
+        /// Get the Html Partial for a Work Item
+        /// </summary>
+        /// <param name="itemID"></param>
+        /// <returns></returns>
+        public JsonResult GetWorkItemPartial(int itemID, bool forModal)
         {
             var service = new UserService();
             var userID = (int)service.GetMyID();
             var userRole = service.GetUserRole(userID);
             var item = service.GetWorkItemFromID(itemID);
             var canApprove = CanApproveItem(userRole);
+            
+
+            var allowedUsers = service.GetAllowedUsers(userID);
+            var statusOptionsList = getItemStatusOptions();
+            var paidOptionsList = getPaidStatusOptions();
+
+            //Create status options for editing work item
+            var statusOptions = new SelectList(statusOptionsList, "Value", "Text", item.Status);
+
+            //Create Paid Status options for editing work item
+            var paidOptions = new SelectList(paidOptionsList, "Value", "Text", item.Paid);
+
+            //Create Allowed Users options for editing work item
+            var assignedOptions = new SelectList(allowedUsers, "Id", "FullName", item.AssignedTo);
+
             var itemModel = GetItemModelFromItem(item, canApprove);
-            itemModel.forModal = true;
+            itemModel.statusOptions = statusOptions;
+            itemModel.paidStatusOptions = paidOptions;
+            itemModel.assignOptions = assignedOptions;
+            itemModel.forModal = forModal;
+
             var viewString = RenderViewToString(this, "_WorkItem", itemModel);
-            return Json(new { status = true, viewString = viewString }, JsonRequestBehavior.AllowGet);
+
+            return Json(new { success = true, viewString = viewString }, JsonRequestBehavior.AllowGet);
         }
 
         /// <summary>
@@ -422,16 +558,8 @@ namespace WorkTracker.Controllers
             //Get Items from user ids
             List<Item> items = service.GetWorkItemFromUserID(userIds);
 
-            //Status options for Work Item Edit
-            var statusOptionsList = new List<ItemStatusListModel>();
-            statusOptionsList.Add(new ItemStatusListModel() { Text = "Pending Approval", Value = (int)ItemStatus.Status.Pending });
-            statusOptionsList.Add(new ItemStatusListModel() { Text = "Approved", Value = (int)ItemStatus.Status.Approved });
-            statusOptionsList.Add(new ItemStatusListModel() { Text = "Denied", Value = (int)ItemStatus.Status.Denied });
-
-            //Paid Status options for Work Item Edit
-            var paidStatusOptionsList = new List<PaidStatusListModel>();
-            paidStatusOptionsList.Add(new PaidStatusListModel() { Text = "Paid", Value = true });
-            paidStatusOptionsList.Add(new PaidStatusListModel() { Text = "Not Paid", Value = false });
+            var statusOptionsList = getItemStatusOptions();
+            var paidOptionsList = getPaidStatusOptions();
 
             //Create Work Item Model from list
             WorkItemModel itemModel;
@@ -441,7 +569,7 @@ namespace WorkTracker.Controllers
                 var statusOptions = new SelectList(statusOptionsList, "Value", "Text", item.Status);
 
                 //Create Paid Status options for editing work item
-                var paidOptions = new SelectList(paidStatusOptionsList, "Value", "Text", item.Paid);
+                var paidOptions = new SelectList(paidOptionsList, "Value", "Text", item.Paid);
 
                 //Create Allowed Users options for editing work item
                 var assignedOptions = new SelectList(allowedUsers, "Id", "FullName", item.AssignedTo);
@@ -453,6 +581,33 @@ namespace WorkTracker.Controllers
                 model.workItems.Add(itemModel);
             }
             return model;
+        }
+
+        /// <summary>
+        /// Get Item Status options for Work Item Edit
+        /// </summary>
+        /// <returns></returns>
+        private List<ItemStatusListModel> getItemStatusOptions()
+        {
+            //Status options for Work Item Edit
+            var statusOptionsList = new List<ItemStatusListModel>();
+            statusOptionsList.Add(new ItemStatusListModel() { Text = "Pending Approval", Value = (int)ItemStatus.Status.Pending });
+            statusOptionsList.Add(new ItemStatusListModel() { Text = "Approved", Value = (int)ItemStatus.Status.Approved });
+            statusOptionsList.Add(new ItemStatusListModel() { Text = "Denied", Value = (int)ItemStatus.Status.Denied });
+            return statusOptionsList;
+        }
+
+        /// <summary>
+        /// Get Paid Status options for Work Item Edit
+        /// </summary>
+        /// <returns></returns>
+        private List<PaidStatusListModel> getPaidStatusOptions()
+        {
+            //Paid Status options for Work Item Edit
+            var paidStatusOptionsList = new List<PaidStatusListModel>();
+            paidStatusOptionsList.Add(new PaidStatusListModel() { Text = "Paid", Value = true });
+            paidStatusOptionsList.Add(new PaidStatusListModel() { Text = "Not Paid", Value = false });
+            return paidStatusOptionsList;
         }
 
         private bool CanApproveItem(Role.RoleTypes role)

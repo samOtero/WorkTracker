@@ -34,7 +34,7 @@
     <div class="col-xs-12" id="workItemContainer">
         @foreach (var item in Model.workItems)
         {
-            <div class="col-md-6">
+            <div class="col-md-6" id="workItemContainer@(item.itemID)">
                 @Html.Partial("_WorkItem", item)
             </div>
         }
@@ -45,276 +45,226 @@
 
 <script>
     $(document).ready(function () {
+        
+        //When Edit button is clicked for a Work Item, show edit fields
+        $(document).on('click', '.editWorkItemBtn', function () {
+            var itemID = $(this).data('itemid');
+            //Show or hide edit details for this item
+            $(".editSection" + itemID).toggleClass('hideMe showMeInline');
+        });
 
-        //Edit Work Item Section
-            
-            //Add popover to buttons
-        $(".workItemApproveBtn").each(function () {
+        //When Save Changes button is clicked for a Work Item
+        $(document).on('click', '.saveWorkItemBtn', function () {
+            var itemID = $(this).data('itemid');
+            saveWorkItem(itemID)
+        });        
+
+        //Set up confirmation Popups
+        setUpConfirmationPopups();
+
+        //When Approve is pressed on the Approve Confirmation
+        $(document).on('click', '.workItemApproveConfirmed', function () {
+            var itemID = $(this).data('itemid');
+            //Check if it comes from modal
+            var isModal = $(this).data('ismodal');
+            approveWorkItem(itemID, isModal);
+        });
+
+        //When Deny is pressed on the Deny Confirmation
+        $(document).on('click', '.workItemDenyConfirmed', function () {
             var itemID = $(this).data('itemid');
             var isModal = $(this).data('ismodal');
-            var idName = $(this).parent().attr('id');            
-            var approveYesBtn = '<button data-itemid="' + itemID + '" data-ismodal="' + isModal + '" class="btn btn-success workItemApproveConfirmed">Approve</button>';
-            var approveNoBtn = ' <button class="btn btn-danger" onclick="$(&quot;#' + idName + ' .workItemApproveBtn&quot;).popover(&quot;hide&quot;);">No</button>';
-            $(this).popover({title: "Are you sure?", content: approveYesBtn+approveNoBtn, html: true, placement: "auto bottom"});
+            denyWorkItem(itemID, isModal);
         });
-            
-            //Add datepicker to edit fields
-            $(".editDateBox").each(function () {
-                $(this).datepicker();
-                $(this).prop('readonly', true); //Set as read only for mobile
-            });
 
-            //When Edit button is clicked for a Work Item
-            $(document).on('click', '.editWorkItemBtn', function () {
-                var itemID = $(this).data('itemid');
-                //Show or hide edit details for this item
-                $(".editSection" + itemID).toggleClass('hideMe showMeInline');
-            });
+        //When Paid is pressed on the Paid Confirmation
+        $(document).on('click', '.workItemPaidConfirmed', function () {
+            var itemID = $(this).data('itemid');
+            var isModal = $(this).data('ismodal');
+            paidWorkItem(itemID, isModal, true);
+        });
 
-            //When Save Changes button is clicked for a Work Item
-            $(document).on('click', '.saveWorkItemBtn', function () {
-                var itemID = $(this).data('itemid');
-                saveWorkItem(itemID)
-            });
-        //End Edit Work Item Section
+        //When Not Paid is pressed on the Not Paid Confirmation
+        $(document).on('click', '.workItemNotPaidConfirmed', function () {
+            var itemID = $(this).data('itemid');
+            var isModal = $(this).data('ismodal');
+            paidWorkItem(itemID, isModal, false);
+        });
 
-        //Deny Work Item Section
-
-            //When Deny button is clicked for a Pending approval Work Item
-            $(document).on('click', '.workItemDenyBtn', function () {
-                var itemID = $(this).data('itemid');
-                //Check if it comes from modal
-                var isModal = $(this).data('ismodal');
-                showDenyConfirmation(itemID, isModal);
-            });
-
-            //When Yes is pressed on the Deny Confirmation
-            $(document).on('click', '.workItemDenyConfirmed', function () {
-                var itemID = $(this).data('itemid');
-                //Check if it comes from modal
-                var isModal = $(this).data('ismodal');
-                denyWorkItem(itemID, isModal);
-            });
-
-        //End Deny Work Item Section
-
-        //Approve Work Item Section
-
-            //When Approve button is clicked for a Pending approval Work Item
-            //$(document).on('click', '.workItemApproveBtn', function () {
-            //    var itemID = $(this).data('itemid');
-            //    //Check if it comes from modal
-            //    var isModal = $(this).data('ismodal');
-            //    showApproveConfirmation(itemID, isModal);
-            //});
-
-            //When Yes is pressed on the Approve Confirmation
-            $(document).on('click', '.workItemApproveConfirmed', function () {
-                var itemID = $(this).data('itemid');
-                //Check if it comes from modal
-                var isModal = $(this).data('ismodal');
-                approveWorkItem(itemID, isModal);
-            });
-
-        //End Approve Work Item Section
-
-        //Generic
-
-            //When No is pressed on Confirmation, reset the text on the line item
-            $(document).on('click', '.workItemApproveReset', function () {
-                var itemID = $(this).data('itemid');
-                //Check if it comes from modal
-                var isModal = $(this).data('ismodal');
-                resetApproveText(itemID, isModal);
-            });
-
-        //End Generic
     });
 
-    //Deny Work Item Functions Section
+    //Set up confirmation popups for a particular Work Item
+    function setUpConfirmationPopups() {
+        //Approve button
+        $(".workItemApproveBtn").each(function () {
+            if ($(this).data('bs.popover')) {
+                //do nothing this button already has the popover
+            }else{
+                var itemID = $(this).data('itemid');
+                var isModal = $(this).data('ismodal');
+                var idName = $(this).parent().attr('id');
+                var approveYesBtn = '<button data-itemid="' + itemID + '" data-ismodal="' + isModal + '" class="btn btn-success workItemApproveConfirmed">Approve</button>';
+                var approveNoBtn = ' <button class="btn btn-danger" onclick="$(&quot;#' + idName + ' .workItemApproveBtn&quot;).popover(&quot;hide&quot;);">No</button>';
+                $(this).popover({ title: "Are you sure?", content: approveYesBtn + approveNoBtn, html: true, placement: "auto bottom" });
+            }            
+        });
 
-        //If the deny confirmation is made, call the ajax
-        function denyWorkItem(itemID, isModal) {
-            var baseName = "#workItemApproveLine" + itemID;
-            var confirmationText = 'Denying Work Item... Please Wait...';
-            updateWorkItemField(baseName, isModal, confirmationText, true);
+        //Deny button
+        $(".workItemDenyBtn").each(function () {
+            if ($(this).data('bs.popover')) {
+                //do nothing this button already has the popover
+            } else {
+                var itemID = $(this).data('itemid');
+                var isModal = $(this).data('ismodal');
+                var idName = $(this).parent().attr('id');
+                var baseName = "workItemDeny";
+                var YesBtn = '<button data-itemid="' + itemID + '" data-ismodal="' + isModal + '" class="btn btn-success ' + baseName + 'Confirmed">Deny</button>';
+                var NoBtn = ' <button class="btn btn-danger" onclick="$(&quot;#' + idName + ' .' + baseName + 'Btn&quot;).popover(&quot;hide&quot;);">No</button>';
+                $(this).popover({ title: "Are you sure?", content: YesBtn + NoBtn, html: true, placement: "auto bottom" });
+            }
+        });
 
-            $.post({
-                url: "DenyWorkItem",
-                data: { itemID: itemID },
-                success: function (result) {
-                    if (result.success == true) {
-                        var statusName = "#workItemStatusLine" + itemID;
-                        var statusChangeText = "Status: Denied";
-                        confirmationText = "Success! Work Item Denied!";
-                        updateWorkItemField(statusName, isModal, statusChangeText, true);
-                        changeListGroupItemColor(statusName, "list-group-item-danger");
-                        updateWorkItemField(baseName, isModal, confirmationText, true);
-                        var historyItem = result.history;
-                        addHistoryItem(itemID, historyItem);
-                    } else {
-                        confirmationText = "Error! Refresh page and try again.";
-                        updateWorkItemField(baseName, isModal, confirmationText, true);
-                    }
-                },
-                error: function (result) {
-                    confirmationText = "Error! Refresh page and try again.";
-                    updateWorkItemField(baseName, isModal, confirmationText, true);
+        //Paid button
+        $(".workItemPaidBtn").each(function () {
+            if ($(this).data('bs.popover')) {
+                //do nothing this button already has the popover
+            } else {
+                var itemID = $(this).data('itemid');
+                var isModal = $(this).data('ismodal');
+                var idName = $(this).parent().attr('id');
+                var baseName = "workItemPaid";
+                var YesBtn = '<button data-itemid="' + itemID + '" data-ismodal="' + isModal + '" class="btn btn-success ' + baseName + 'Confirmed">Paid</button>';
+                var NoBtn = ' <button class="btn btn-danger" onclick="$(&quot;#' + idName + ' .' + baseName + 'Btn&quot;).popover(&quot;hide&quot;);">No</button>';
+                $(this).popover({ title: "Are you sure?", content: YesBtn + NoBtn, html: true, placement: "auto bottom" });
+            }
+        });
+        //Not Paid button
+        $(".workItemNotPaidBtn").each(function () {
+            if ($(this).data('bs.popover')) {
+                //do nothing this button already has the popover
+            } else {
+                var itemID = $(this).data('itemid');
+                var isModal = $(this).data('ismodal');
+                var idName = $(this).parent().attr('id');
+                var baseName = "workItemNotPaid";
+                var YesBtn = '<button data-itemid="' + itemID + '" data-ismodal="' + isModal + '" class="btn btn-success ' + baseName + 'Confirmed"> Not Paid</button>';
+                var NoBtn = ' <button class="btn btn-danger" onclick="$(&quot;#' + idName + ' .' + baseName + 'Btn&quot;).popover(&quot;hide&quot;);">No</button>';
+                $(this).popover({ title: "Are you sure?", content: YesBtn + NoBtn, html: true, placement: "auto bottom" });
+            }
+        });
+    }
+
+    //If the paid confirmation is made, call the ajax
+    function paidWorkItem(itemID, isModal, paid) {
+        var resultMessage = "paid";
+        if (paid == false)
+            resultMessage = "not paid";
+        //Open save modal to block any other input
+        $("#saveModal").modal({ backdrop: "static" });
+        var isModal = false;
+        $.post({
+            url: "PaidWorkItem",
+            data: {
+                itemID: itemID,
+                newStatus: paid
+            },
+            success: function (result) {
+                $("#saveModal").modal("hide"); //Hide Save Modal once we have responce
+                if (result.success == true) {
+                    createNotification("Work Item marked as "+resultMessage+"!", "success");
+                    $("#workItemContainer" + itemID).html(result.viewString);
+                    setUpConfirmationPopups();//Set up any new popups for this Work Item
+                } else {
+                    createNotification("Error: Could not mark Work Item as " + resultMessage + ".", "error");
                 }
-            });
-        }
+            },
+            error: function (result) {
+                $("#saveModal").modal("hide"); //Hide Save Modal once we have responce
+                createNotification("Error: Could not mark Work Item as " + resultMessage + ".", "error");
+            }
+        });
+    }
 
-        function showDenyConfirmation(itemID, isModal) {
-            var baseName = "#workItemApproveLine" + itemID;
-            var confirmationText = 'Are you sure you want to Deny?<br><button data-itemid="' + itemID + '" data-ismodal="' + isModal + '" class="btn btn-success workItemDenyConfirmed">Yes</button> <button data-itemid="' + itemID + '" data-ismodal="' + isModal + '" class="btn btn-danger workItemApproveReset">No</button>';
-            updateWorkItemField(baseName, isModal, confirmationText, false);
-        }
-
-    //End Deny Work Item Functions Section
-
-    //Aprove Work Item Functions Section
-
-        //If the approve confirmation is made, call the ajax
-        function approveWorkItem(itemID, isModal) {
-            var baseName = "#workItemApproveLine" + itemID;
-            var confirmationText = 'Approving Work Item... Please Wait...';
-            updateWorkItemField(baseName, isModal, confirmationText, true);
-
-            $.post({
-                url: "ApproveWorkItem",
-                data: { itemID: itemID },
-                success: function (result) {
-                    if (result.success == true) {
-                        var statusName = "#workItemStatusLine" + itemID;
-                        var statusChangeText = "Status: Approved";
-                        confirmationText = "Success! Work Item Approved!";
-                        updateWorkItemField(statusName, isModal, statusChangeText, true);
-                        changeListGroupItemColor(statusName, "list-group-item-success")
-                        updateWorkItemField(baseName, isModal, confirmationText, true);
-                        var historyItem = result.history;
-                        addHistoryItem(itemID, historyItem);
-                    }else{
-                        confirmationText = "Error! Refresh page and try again.";
-                        updateWorkItemField(baseName, isModal, confirmationText, true);
-                    }
-                },
-                error: function (result) {
-                    confirmationText = "Error! Refresh page and try again.";
-                    updateWorkItemField(baseName, isModal, confirmationText, true);
+    //If the deny confirmation is made, call the ajax
+    function denyWorkItem(itemID, isModal) {
+        //Open save modal to block any other input
+        $("#saveModal").modal({ backdrop: "static" });
+        var isModal = false;
+        $.post({
+            url: "DenyWorkItem",
+            data: { itemID: itemID },
+            success: function (result) {
+                $("#saveModal").modal("hide"); //Hide Save Modal once we have responce
+                if (result.success == true) {
+                    createNotification("Work Item denied!", "success");
+                    $("#workItemContainer" + itemID).html(result.viewString);
+                    setUpConfirmationPopups();//Set up any new popups for this Work Item
+                } else {
+                    createNotification("Error: Could not deny Work Item.", "error");
                 }
-            });
-        }
+            },
+            error: function (result) {
+                $("#saveModal").modal("hide"); //Hide Save Modal once we have responce
+                createNotification("Error: Could not deny Work Item.", "error");
+            }
+        });
+    }
 
-        function showApproveConfirmation(itemID, isModal) {
-            var baseName = "#workItemApproveLine" + itemID;
-            var confirmationText = 'Are you sure you want to Approve?<br><button data-itemid="' + itemID + '" data-ismodal="' + isModal + '" class="btn btn-success workItemApproveConfirmed">Yes</button> <button data-itemid="' + itemID + '" data-ismodal="' + isModal + '" class="btn btn-danger workItemApproveReset">No</button>';
-            updateWorkItemField(baseName, isModal, confirmationText, false);
-        }
-
-    //End Approve Work Item Functions Section
+    //If the approve confirmation is made, call the ajax
+    function approveWorkItem(itemID, isModal) {
+        $("#saveModal").modal({ backdrop: "static" });
+        var isModal = false;
+        $.post({
+            url: "ApproveWorkItem",
+            data: { itemID: itemID },
+            success: function (result) {
+                $("#saveModal").modal("hide"); //Hide Save Modal once we have responce
+                if (result.success == true) {
+                    createNotification("Work Item approved!", "success");
+                    $("#workItemContainer" + itemID).html(result.viewString);
+                    setUpConfirmationPopups();//Set up any new popups for this Work Item
+                }else{
+                    createNotification("Error: Could not approve Work Item.", "error");
+                }
+            },
+            error: function (result) {
+                $("#saveModal").modal("hide"); //Hide Save Modal once we have responce
+                createNotification("Error: Could not approve Work Item.", "error");
+            }
+        });
+    }
         
     //Save Work Item Functions Section
-        function saveWorkItem(itemID) {
-            $("#saveModal").modal({ backdrop: "static" });
-            var isModal = false;
-            //var baseName = "#workItemEditLine" + itemID;
-            //var confirmationText = 'Saving your changes... Please Wait...';
-           // updateWorkItemField(baseName, isModal, confirmationText, true);
-
-            $.post({
-                url: "SaveWorkItem",
-                data: {
-                    itemID: itemID,
-                    newStatus: $("#statusOptions" + itemID).val(),
-                    newDate: $("#dateBox" + itemID).val(),
-                    newAssigned: $("#assignedBox" + itemID).val(),
-                    newCost: $("#costBox" + itemID).val(),
-                    newPaid: $("#paidStatusOptions" + itemID).val(),
-                    newDescription: $("#descriptionBox" + itemID).val(),
-                    '__RequestVerificationToken': $('input[name=__RequestVerificationToken]').val()
-                },
-                success: function (result) {
-                    $("#saveModal").modal("hide"); //Hide Save Modal once we have responce
-                    if (result.success == true) {
-                        createNotification("Work Item was saved!", "success");
-                        //var statusName = "#workItemStatusLine" + itemID;
-                        //var statusChangeText = "Status: Approved";
-                        //confirmationText = "Success! Work Item Approved!";
-                        //updateWorkItemField(statusName, isModal, statusChangeText, true);
-                        //changeListGroupItemColor(statusName, "list-group-item-success")
-                        //updateWorkItemField(baseName, isModal, confirmationText, true);
-                        var historyItem = result.history;
-                        addHistoryItem(itemID, historyItem);
-                    } else {
-                        createNotification("Error: Could not save Work Item.", "error");
-                    }
-                },
-                error: function (result) {
-                    $("#saveModal").modal("hide"); //Hide Save Modal once we have responce
+    function saveWorkItem(itemID) {
+        $("#saveModal").modal({ backdrop: "static" });
+        var isModal = false;
+        $.post({
+            url: "SaveWorkItem",
+            data: {
+                itemID: itemID,
+                newStatus: $("#statusOptions" + itemID).val(),
+                newDate: $("#dateBox" + itemID).val(),
+                newAssigned: $("#assignedBox" + itemID).val(),
+                newCost: $("#costBox" + itemID).val(),
+                newPaid: $("#paidStatusOptions" + itemID).val(),
+                newDescription: $("#descriptionBox" + itemID).val(),
+                isModal: isModal,
+                '__RequestVerificationToken': $('input[name=__RequestVerificationToken]').val()
+            },
+            success: function (result) {
+                $("#saveModal").modal("hide"); //Hide Save Modal once we have responce
+                if (result.success == true) {
+                    createNotification("Work Item was saved!", "success");
+                    $("#workItemContainer" + itemID).html(result.viewString);
+                    setUpConfirmationPopups();//Set up any new popups for this Work Item
+                } else {
                     createNotification("Error: Could not save Work Item.", "error");
                 }
-            });
-        }
-    //End Save Work Item Functions Section
-
-    //Generic functions
-
-        //Reset Approve/Deny text if they press no in either confirmation
-        function resetApproveText(itemID, isModal) {
-            var baseName = "#workItemApproveLine" + itemID;
-            var confirmationText = '<button data-itemid="' + itemID + '" data-ismodal="' + isModal + '" class="btn btn-success workItemApproveBtn">Approve</button> <button data-itemid="' + itemID + '" data-ismodal="' + isModal + '" class="btn btn-danger workItemDenyBtn">Deny</button>';
-            updateWorkItemField(baseName, isModal, confirmationText, false);
-        }
-
-        //Add Item History Items to Work Item panels as needed
-        function addHistoryItem(itemID, newItem) {
-            var baseName = "#historyGroup" + itemID;
-            var modalName = baseName + "Modal";
-            var baseTag = $(baseName);
-            var modalTag = $(modalName);
-            var historyFormat = '<li class="list-group-item">' + newItem + '</li>';
-            if (baseTag.length) {
-                baseTag.prepend(historyFormat);
+            },
+            error: function (result) {
+                $("#saveModal").modal("hide"); //Hide Save Modal once we have responce
+                createNotification("Error: Could not save Work Item.", "error");
             }
-            if (modalTag.length) {
-                modalTag.prepend(historyFormat);
-            }
-        }
-
-        //Will update Work Item Panels Information as needed
-        function updateWorkItemField(baseName, isModal, newHtml, doForBoth) {
-            if (isModal == "yes" || doForBoth == true) {
-                var modalTag = $(baseName + "Modal");
-                if (modalTag.length) {
-                    modalTag.html(newHtml);
-                }
-            }
-            if (isModal == "no" || doForBoth == true) {
-                var baseTag = $(baseName);
-                if (baseTag.length) {
-                    baseTag.html(newHtml);
-                }
-            }
-        }
-
-    //Update List group item color
-        function changeListGroupItemColor(lineName, newColorClass) {
-            var lineTag = $(lineName);
-            var lineTagModal = $(lineName = "Modal");
-            if (lineTag.length) {
-                lineTag.removeClass("list-group-item-danger");
-                lineTag.removeClass('list-group-item-success');
-                lineTag.removeClass("list-group-item-warning");
-                lineTag.addClass(newColorClass);
-            }
-            if (lineTagModal.length) {
-                lineTagModal.removeClass("list-group-item-danger");
-                lineTagModal.removeClass('list-group-item-success');
-                lineTagModal.removeClass("list-group-item-warning");
-                lineTagModal.addClass(newColorClass);
-            }
-        }
-
-    //End Generic Functions Section
-
+        });
+    }
 </script>
