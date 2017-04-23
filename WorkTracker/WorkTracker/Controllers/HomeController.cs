@@ -15,7 +15,7 @@ namespace WorkTracker.Controllers
     {
         public ActionResult Index()
         {
-            if (Request.IsAuthenticated)
+            if (Request.IsAuthenticated && checkAuthentication())
             {
                 return RedirectToAction("Dashboard");
             }
@@ -248,42 +248,42 @@ namespace WorkTracker.Controllers
                         //Send to Assigned To user if he is not the creator
                         if (newAssignedTo.Id != userID)
                         {
-                            newNotification = new Notification()
-                            {
-                                AssignedTo = item.AssignedTo,
-                                CreatedOn = dateNow,
-                                ItemId = item.Id,
-                                Type = (int)Notification.Types.ItemChanged,
-                                New = true
-                            };
-                            context.Notifications.Add(newNotification);
+                            //newNotification = new Notification()
+                            //{
+                            //    AssignedTo = item.AssignedTo,
+                            //    CreatedOn = dateNow,
+                            //    ItemId = item.Id,
+                            //    Type = (int)Notification.Types.ItemChanged,
+                            //    New = true
+                            //};
+                            //context.Notifications.Add(newNotification);
                         }
 
                         if (changedAssignedTo == true)
                         {
                             if (newAssignedTo.Id != userID)
                             {
-                                newNotification = new Notification()
-                                {
-                                    AssignedTo = item.AssignedTo,
-                                    CreatedOn = dateNow,
-                                    ItemId = item.Id,
-                                    Type = (int)Notification.Types.AssignedTo,
-                                    New = true
-                                };
-                                context.Notifications.Add(newNotification);
+                                //newNotification = new Notification()
+                                //{
+                                //    AssignedTo = item.AssignedTo,
+                                //    CreatedOn = dateNow,
+                                //    ItemId = item.Id,
+                                //    Type = (int)Notification.Types.AssignedTo,
+                                //    New = true
+                                //};
+                                //context.Notifications.Add(newNotification);
                             }
                             if (originallyAssignedTo.Id != userID)
                             {
-                                newNotification = new Notification()
-                                {
-                                    AssignedTo = item.AssignedTo,
-                                    CreatedOn = dateNow,
-                                    ItemId = item.Id,
-                                    Type = (int)Notification.Types.ItemAssignedOff,
-                                    New = true
-                                };
-                                context.Notifications.Add(newNotification);
+                                //newNotification = new Notification()
+                                //{
+                                //    AssignedTo = item.AssignedTo,
+                                //    CreatedOn = dateNow,
+                                //    ItemId = item.Id,
+                                //    Type = (int)Notification.Types.ItemAssignedOff,
+                                //    New = true
+                                //};
+                                //context.Notifications.Add(newNotification);
                             }
                         }
 
@@ -341,17 +341,17 @@ namespace WorkTracker.Controllers
                     };
                     context.ItemHistories.Add(newHistory);
 
-                    Notification newNotification;
-                    //Send to Assigned To user if he is not the creator
-                    newNotification = new Notification()
-                    {
-                        AssignedTo = item.AssignedTo,
-                        CreatedOn = dateNow,
-                        ItemId = item.Id,
-                        Type = (int)Notification.Types.Denied,
-                        New = true
-                    };
-                    context.Notifications.Add(newNotification);
+                    //Notification newNotification;
+                    ////Send to Assigned To user if he is not the creator
+                    //newNotification = new Notification()
+                    //{
+                    //    AssignedTo = item.AssignedTo,
+                    //    CreatedOn = dateNow,
+                    //    ItemId = item.Id,
+                    //    Type = (int)Notification.Types.Denied,
+                    //    New = true
+                    //};
+                    //context.Notifications.Add(newNotification);
 
                     context.SaveChanges();
                 }
@@ -362,6 +362,57 @@ namespace WorkTracker.Controllers
             }
             return GetWorkItemPartial(itemID, false); //Get Html Partial for Work Item
 
+        }
+
+        public JsonResult PayAllWorkItemsForUser(int userID)
+        {
+            var userList = new List<int>();
+            userList.Add(userID);
+            var service = new UserService();
+            var workItems = service.GetWorkItemFromUserID(userList);
+
+            //DateCreated
+            var dateNow = DateTimeOffset.Now;
+            var dateNowFormated = dateNow.ToString("M/d/yy h:mm tt");
+
+            //Get approver's name
+            var ownerID = (int)service.GetMyID();
+            var user = service.GetUser(ownerID);
+            var creatorName = user.FullName;
+            var postfix = " by " + creatorName + " on " + dateNowFormated + ".";
+            var historyText = "Paid Status changed from \"" + GetPaidStatusText(false) + "\" to \"" + GetPaidStatusText(true) + "\""+postfix;
+            using (var context = new DbModels())
+            {
+                foreach (var workItem in workItems)
+                {
+                    if (workItem.Paid == true || workItem.Status != (int)ItemStatus.Status.Approved)
+                        continue;
+
+                    workItem.Paid = true;
+                    try
+                    {
+                        context.Items.Attach(workItem);
+                        context.Entry(workItem).State = EntityState.Modified;
+
+                        //Create Work Item History
+                        var newHistory = new ItemHistory()
+                        {
+                            itemId = workItem.Id,
+                            Note = historyText,
+                            CreatedBy = userID,
+                            CreatedOn = dateNow,
+                        };
+                        context.ItemHistories.Add(newHistory);
+                    }
+                    catch (Exception e)
+                    {
+                        return Json(new { success = false }, JsonRequestBehavior.AllowGet);
+                    }
+                }
+                context.SaveChanges();
+            }
+            
+            return Json(new { success = true }, JsonRequestBehavior.AllowGet);
         }
 
         /// <summary>
@@ -415,17 +466,17 @@ namespace WorkTracker.Controllers
                     };
                     context.ItemHistories.Add(newHistory);
 
-                    Notification newNotification;
-                    //Send to Assigned To user if he is not the creator
-                    newNotification = new Notification()
-                    {
-                        AssignedTo = item.AssignedTo,
-                        CreatedOn = dateNow,
-                        ItemId = item.Id,
-                        Type = (int)Notification.Types.Approved,
-                        New = true
-                    };
-                    context.Notifications.Add(newNotification);
+                    //Notification newNotification;
+                    ////Send to Assigned To user if he is not the creator
+                    //newNotification = new Notification()
+                    //{
+                    //    AssignedTo = item.AssignedTo,
+                    //    CreatedOn = dateNow,
+                    //    ItemId = item.Id,
+                    //    Type = (int)Notification.Types.Approved,
+                    //    New = true
+                    //};
+                    //context.Notifications.Add(newNotification);
 
                     context.SaveChanges();
                 }
@@ -480,17 +531,17 @@ namespace WorkTracker.Controllers
                     };
                     context.ItemHistories.Add(newHistory);
 
-                    Notification newNotification;
-                    //Send to Assigned To user if he is not the creator
-                    newNotification = new Notification()
-                    {
-                        AssignedTo = item.AssignedTo,
-                        CreatedOn = dateNow,
-                        ItemId = item.Id,
-                        Type = (int)Notification.Types.Approved,
-                        New = true
-                    };
-                    context.Notifications.Add(newNotification);
+                    //Notification newNotification;
+                    ////Send to Assigned To user if he is not the creator
+                    //newNotification = new Notification()
+                    //{
+                    //    AssignedTo = item.AssignedTo,
+                    //    CreatedOn = dateNow,
+                    //    ItemId = item.Id,
+                    //    Type = (int)Notification.Types.Approved,
+                    //    New = true
+                    //};
+                    //context.Notifications.Add(newNotification);
 
                     context.SaveChanges();
                 }
@@ -790,15 +841,15 @@ namespace WorkTracker.Controllers
                         //Send to Assigned To user if he is not the creator
                         if (input.AssignedTo != input.CreatedBy)
                         {
-                            newNotification = new Notification()
-                            {
-                                AssignedTo = input.AssignedTo,
-                                CreatedOn = dateNow,
-                                ItemId = newItem.Id,
-                                Type = (int)Notification.Types.AssignedTo,
-                                New = true
-                            };
-                            context.Notifications.Add(newNotification);
+                            //newNotification = new Notification()
+                            //{
+                            //    AssignedTo = input.AssignedTo,
+                            //    CreatedOn = dateNow,
+                            //    ItemId = newItem.Id,
+                            //    Type = (int)Notification.Types.AssignedTo,
+                            //    New = true
+                            //};
+                            //context.Notifications.Add(newNotification);
                             needUpdate = true;
                         }
                         //Send to owner(s)
@@ -808,15 +859,15 @@ namespace WorkTracker.Controllers
                             if (owner.Id == input.AssignedTo || owner.Id == input.CreatedBy)
                                 continue;
 
-                            newNotification = new Notification()
-                            {
-                                AssignedTo = owner.Id,
-                                CreatedOn = dateNow,
-                                ItemId = newItem.Id,
-                                Type = (int)Notification.Types.Created,
-                                New = true
-                            };
-                            context.Notifications.Add(newNotification);
+                            //newNotification = new Notification()
+                            //{
+                            //    AssignedTo = owner.Id,
+                            //    CreatedOn = dateNow,
+                            //    ItemId = newItem.Id,
+                            //    Type = (int)Notification.Types.Created,
+                            //    New = true
+                            //};
+                            //context.Notifications.Add(newNotification);
                             needUpdate = true;
                         }
 

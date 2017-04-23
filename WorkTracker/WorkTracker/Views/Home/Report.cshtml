@@ -25,6 +25,9 @@
     li.showMeInline {
         display:block;
     }
+    .popover-title {
+        color:black !important;
+    }
 </style>
 <div class="row">
     <h1>Report</h1>
@@ -50,8 +53,32 @@
     </div>
 </div>
 @Html.AntiForgeryToken()
+@Html.Partial("_saveModal")
 <script type="text/javascript" src="~/Scripts/jquery-notify.min.js"></script>
 <script>
+
+    $(document).ready(function () {
+        //When Approve is pressed on the Approve Confirmation
+        $(document).on('click', '.payWorkItemsConfirmed', function () {
+            var userID = $(this).data('userid');
+            payWorkItem(userID);
+        });
+
+        //Approve button
+        $(".payWorkItemBtn").each(function () {
+            if ($(this).data('bs.popover')) {
+                //do nothing this button already has the popover
+            } else {
+                var userID = $(this).data('userid');
+                var idName = $(this).attr('id');
+                var approveYesBtn = '<button data-userid="' + userID + '" class="btn btn-success payWorkItemsConfirmed">Paid</button>';
+                var approveNoBtn = ' <button class="btn btn-danger" onclick="$(&quot;#' + idName + '&quot;).popover(&quot;hide&quot;);">No</button>';
+                $(this).popover({ title: "Are you sure?", content: approveYesBtn + approveNoBtn, html: true, placement: "auto bottom" });
+            }
+        });
+    });
+    
+
     //toggle Arrow when clicked
     $(document).on('click', '.toggleArrowContainer', function () {
         var myIcon = $(this).find('.arrowIcon');
@@ -74,4 +101,31 @@
             style: 'box'
         });
     }
+
+    //If the pay confirmation is made, call the ajax
+    function payWorkItem(userID) {
+        //Open save modal to block any other input
+        $("#saveModal").modal({ backdrop: "static" });
+        var isModal = false;
+        $.post({
+            url: "PayAllWorkItemsForUser",
+            data: {
+                userID: userID
+            },
+            success: function (result) {
+                $("#saveModal").modal("hide"); //Hide Save Modal once we have responce
+                if (result.success == true) {
+                    createNotification("Work Item(s) marked as paid!", "success");
+                    $("#reportItemContainer" + userID).hide();
+                } else {
+                    createNotification("Error: Could not mark Work Item as paid.", "error");
+                }
+            },
+            error: function (result) {
+                $("#saveModal").modal("hide"); //Hide Save Modal once we have responce
+                createNotification("Error: Could not mark Work Item as paid.", "error");
+            }
+        });
+    }
+
 </script>

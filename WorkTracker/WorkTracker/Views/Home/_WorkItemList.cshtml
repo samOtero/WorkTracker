@@ -38,6 +38,10 @@
                 @Html.Partial("_WorkItem", item)
             </div>
         }
+        @if(Model.workItems.Count == 0)
+        {
+            @:No Work Items found for you.
+        }
     </div>
 </div>
 

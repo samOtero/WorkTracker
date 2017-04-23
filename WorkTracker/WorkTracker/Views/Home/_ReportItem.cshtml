@@ -9,7 +9,7 @@
         @if (Model.totalOwed > 0)
         {
             <div class="pull-right">
-                <button class="btn btn-success payWorkItemBtn" data-itemid="@(Model.userId)">
+                <button class="btn btn-success payWorkItemBtn" id="payWorkItemBtn@(Model.userId)" data-userid="@(Model.userId)">
                     <span class="glyphicon glyphicon-ok-circle" aria-hidden="true"></span> Paid
                 </button>
             </div>

@@ -10,6 +10,7 @@ namespace WorkTracker.Services
     public class UserService
     {
         #region Work Items
+
         /// <summary>
         /// Get a Work Item by its ID
         /// </summary>
