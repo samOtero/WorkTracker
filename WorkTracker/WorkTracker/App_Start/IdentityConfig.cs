@@ -11,6 +11,8 @@ using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using WorkTracker.Models;
+using System.Net.Mail;
+using System.Text;
 
 namespace WorkTracker
 {
@@ -19,6 +21,17 @@ namespace WorkTracker
         public Task SendAsync(IdentityMessage message)
         {
             // Plug in your email service here to send an email.
+            var msg = new MailMessage();
+            msg.From = new MailAddress("noreply@worktrackertesting.azurewebsites.net");
+            msg.To.Add(new MailAddress(message.Destination));
+            msg.Subject = message.Subject;
+            msg.Body = message.Body;
+            msg.IsBodyHtml = true;
+            
+            using( var stmp = new SmtpClient())
+            {
+                stmp.Send(msg);
+            }
             return Task.FromResult(0);
         }
     }
