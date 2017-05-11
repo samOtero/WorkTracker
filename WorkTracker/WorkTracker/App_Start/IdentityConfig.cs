@@ -78,6 +78,7 @@ namespace WorkTracker
             });
             manager.EmailService = new EmailService();
             manager.SmsService = new SmsService();*/
+            manager.EmailService = new EmailService();
             var dataProtectionProvider = options.DataProtectionProvider;
             if (dataProtectionProvider != null)
             {

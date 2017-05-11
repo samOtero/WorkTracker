@@ -235,6 +235,7 @@
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="b4f466bbf03267603c5864a498e23b51.txt" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\images\ui-bg_flat_0_aaaaaa_40x100.png">
