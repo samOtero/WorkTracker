@@ -40,11 +40,12 @@
    </div>
         <ul class="list-group">
             <li class="list-group-item @(paneltype)" id="workItemStatusLine@(Model.itemID)@(forModal)">Status: @(Model.approval)</li>
-            <li class="list-group-item">Date: @(Model.time)</li>
+            <li class="list-group-item">Date: @(Model.time) <div class="editSection@(Model.itemID) hideMe">@Html.TextBox("dateBox"+Model.itemID, Model.time, new { @class = "form-control dateBox", style = "display: inline" })</div></li> 
             <li class="list-group-item">Done by: @(Model.assignedTo) <div class="editSection@(Model.itemID) hideMe">@Html.DropDownList("assignedBox" + Model.itemID, Model.assignOptions, new { @class = "form-control", style = "display: inline" })</div></li>
             <li class="list-group-item">Amount Owed: @(Model.cost) <div class="editSection@(Model.itemID) hideMe">@Html.TextBox("costBox" + Model.itemID, Model.cost, new { @class = "form-control", style = "display: inline" })</div></li>
             <li class="list-group-item @(paidPanelType)">Paid Status: @(Model.paidString)</li>
             <li class="list-group-item">Description: @(Model.description) <div class="editSection@(Model.itemID) hideMe">@Html.TextArea("descriptionBox"+Model.itemID, Model.description, new { @class="form-control", style = "display: inline" })</div></li>
+            
             @if (Model.canApprove == true)
             {
                 @*Save changes button - hidden but only add it if you can approve this work item*@

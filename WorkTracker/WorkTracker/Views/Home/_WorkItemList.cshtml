@@ -64,7 +64,7 @@
         });        
 
         //Set up confirmation Popups
-        setUpConfirmationPopups();
+        setUpWorkItemPopupsAndDate();
 
         //When Approve is pressed on the Approve Confirmation
         $(document).on('click', '.workItemApproveConfirmed', function () {
@@ -98,7 +98,17 @@
     });
 
     //Set up confirmation popups for a particular Work Item
-    function setUpConfirmationPopups() {
+    function setUpWorkItemPopupsAndDate() {
+
+        //Set up Date Edit Boxes
+        $(".dateBox").each(function () {
+            if ($("#someElement").data("datepicker") != null) {
+                // datepicker already initialized
+            } else {
+                $(this).datepicker();
+            }
+        });
+
         //Approve button
         $(".workItemApproveBtn").each(function () {
             if ($(this).data('bs.popover')) {
@@ -177,7 +187,7 @@
                 if (result.success == true) {
                     createNotification("Work Item marked as "+resultMessage+"!", "success");
                     $("#workItemContainer" + itemID).html(result.viewString);
-                    setUpConfirmationPopups();//Set up any new popups for this Work Item
+                    setUpWorkItemPopupsAndDate();//Set up any new popups for this Work Item
                 } else {
                     createNotification("Error: Could not mark Work Item as " + resultMessage + ".", "error");
                 }
@@ -202,7 +212,7 @@
                 if (result.success == true) {
                     createNotification("Work Item denied!", "success");
                     $("#workItemContainer" + itemID).html(result.viewString);
-                    setUpConfirmationPopups();//Set up any new popups for this Work Item
+                    setUpWorkItemPopupsAndDate();//Set up any new popups for this Work Item
                 } else {
                     createNotification("Error: Could not deny Work Item.", "error");
                 }
@@ -226,7 +236,7 @@
                 if (result.success == true) {
                     createNotification("Work Item approved!", "success");
                     $("#workItemContainer" + itemID).html(result.viewString);
-                    setUpConfirmationPopups();//Set up any new popups for this Work Item
+                    setUpWorkItemPopupsAndDate();//Set up any new popups for this Work Item
                 }else{
                     createNotification("Error: Could not approve Work Item.", "error");
                 }
@@ -260,7 +270,7 @@
                 if (result.success == true) {
                     createNotification("Work Item was saved!", "success");
                     $("#workItemContainer" + itemID).html(result.viewString);
-                    setUpConfirmationPopups();//Set up any new popups for this Work Item
+                    setUpWorkItemPopupsAndDate();//Set up any new popups for this Work Item
                 } else {
                     createNotification("Error: Could not save Work Item.", "error");
                 }

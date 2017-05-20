@@ -17,12 +17,12 @@
             @Html.TextBoxFor(m => m.Name, new { @class = "form-control" })
         </div>
     </div>
-    @*<div class="form-group">
+    <div class="form-group">
         @Html.LabelFor(m => m.ItemDate, new { @class = "col-md-2 control-label" })
         <div class="col-md-10">
             @Html.TextBoxFor(m => m.ItemDate, new { @class = "form-control" })
         </div>
-    </div>*@
+    </div>
     <div class="form-group">
         @Html.LabelFor(m => m.WorkDescription, new { @class = "col-md-2 control-label" })
         <div class="col-md-10">
@@ -77,9 +77,14 @@
 }
 <script type="text/javascript" src="~/Scripts/jquery-notify.min.js"></script>
 <script>
+    //Reset Date field to the current date
+    function resetDate() {
+        $("#ItemDate").datepicker('setDate', new Date());
+    }
+
     $(document).ready(function () {
         $("#ItemDate").datepicker();
-        $("#ItemDate").prop('readonly', true); //Set as read only for mobile
+        resetDate();
 
         $("#createWorkItemBtn").click(function () {
             $("#createWorkItemBtn").val("Creating...");
@@ -130,6 +135,8 @@
                 style: 'box'
             });
         }
+        
+
         function addCreatedItem() {
             //Get field values
             var name = $("#Name").val();
@@ -150,6 +157,7 @@
             $("#WorkDescription").val("");
             $("#Cost").val("");
             $("#Hours").val("");
+            resetDate();
         }
     });
 </script>

@@ -154,18 +154,23 @@ namespace WorkTracker.Controllers
             //    historyString += "Status changed from \"" + GetApprovalText((ItemStatus.Status)originalStatus) + "\" to \"" + GetApprovalText((ItemStatus.Status)input.newStatus) + "\"";
             //    item.Status = input.newStatus;
             //}
+            if (input.newDate != null)
+            {
+                var newDate = input.newDate.ToString("M/d/yy");
+                if (originalDate != newDate)
+                {
+                    needUpdate = true;
+                    changedDate = true;
 
-            //var newDate = input.newDate.ToString("M/d/yy");
-            //if (originalDate != newDate)
-            //{
-            //    changedDate = true;
+                    if (string.IsNullOrWhiteSpace(historyString))
+                        historyString += "<br/>";
 
-            //    if (string.IsNullOrWhiteSpace(historyString))
-            //        historyString += "<br/>";
+                    historyString += "Date changed from \"" + originalDate + "\" to \"" + newDate + "\"";
+                    item.ItemDate = input.newDate;
+                }
+            }
 
-            //    historyString += "Date changed from \"" +originalDate+"\" to \""+newDate+"\"";
-            //    item.ItemDate = input.newDate;
-            //}
+            //
 
             var originallyAssignedTo = service.GetUser(originalAssignedTo);
             var newAssignedTo = originallyAssignedTo;
@@ -681,7 +686,7 @@ namespace WorkTracker.Controllers
             itemModel.title = item.Name;
             itemModel.description = item.WorkDescription;
             itemModel.approval = GetApprovalText(itemModel.approvalStatus);
-            itemModel.time = item.ItemDate.ToString("MM/dd/yy");
+            itemModel.time = item.ItemDate.ToString("MM/dd/yyyy");
             itemModel.assignedTo = item.UserAssignedTo.FirstName + " " + item.UserAssignedTo.LastName;
             itemModel.assignedToId = item.AssignedTo;
             itemModel.paid = item.Paid;
@@ -785,6 +790,12 @@ namespace WorkTracker.Controllers
                 validationResults.Add("Hours Worked is missing or has an invalid value.");
             }
 
+            if (input.ItemDate == null)
+            {
+                result = false;
+                validationResults.Add("Work Data is Required.");
+            }
+
             if (result == true) //Only continue if result is still good
             {
                 var userService = new UserService();
@@ -795,8 +806,8 @@ namespace WorkTracker.Controllers
                     newStatus = ItemStatus.Status.Approved;
 
                 //DateCreated
-                var dateNow = DateTimeOffset.Now;
-                var dateNowFormated = dateNow.ToString("M/d/yy h:mm tt");
+                var workItemDate = input.ItemDate.Value;
+                var workItemDateFormatted = workItemDate.ToString("M/d/yy h:mm tt");
                 //Save to Database
                 try
                 {
@@ -808,11 +819,11 @@ namespace WorkTracker.Controllers
                             AssignedTo = input.AssignedTo,
                             Cost = (decimal)input.Cost,
                             Hours = (int)input.Hours,
-                            ItemDate = dateNow,
+                            ItemDate = workItemDate,
                             Name = input.Name,
                             CreatedBy = input.CreatedBy,
-                            CreatedOn = dateNow,
-                            ModifiedOn = dateNow,
+                            CreatedOn = workItemDate,
+                            ModifiedOn = workItemDate,
                             Status = (int)newStatus,
                             WorkDescription = input.WorkDescription,
                             WorkStatus = (int)WorkItemStatus.Status.NotStarted //By default not Started
@@ -827,9 +838,9 @@ namespace WorkTracker.Controllers
                         var newHistory = new ItemHistory()
                         {
                             itemId = newItem.Id,
-                            Note = "Created by " + creatorName + " on " + dateNowFormated + ".",
+                            Note = "Created by " + creatorName + " on " + workItemDateFormatted + ".",
                             CreatedBy = input.CreatedBy,
-                            CreatedOn = dateNow,
+                            CreatedOn = workItemDate,
                         };
 
                         context.ItemHistories.Add(newHistory);
