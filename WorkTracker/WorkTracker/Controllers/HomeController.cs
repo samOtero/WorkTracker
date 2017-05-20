@@ -162,7 +162,7 @@ namespace WorkTracker.Controllers
                     needUpdate = true;
                     changedDate = true;
 
-                    if (string.IsNullOrWhiteSpace(historyString))
+                    if (!string.IsNullOrWhiteSpace(historyString))
                         historyString += "<br/>";
 
                     historyString += "Date changed from \"" + originalDate + "\" to \"" + newDate + "\"";
