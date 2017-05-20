@@ -106,6 +106,7 @@
                 // datepicker already initialized
             } else {
                 $(this).datepicker();
+                $(this).prop('readonly', true); //Set as read only for mobile so that it won't pull up the keyboard
             }
         });
 

@@ -80,6 +80,7 @@
     //Reset Date field to the current date
     function resetDate() {
         $("#ItemDate").datepicker('setDate', new Date());
+        $("#ItemDate").prop('readonly', true); //Set as read only for mobile so that it won't pull up the keyboard
     }
 
     $(document).ready(function () {
