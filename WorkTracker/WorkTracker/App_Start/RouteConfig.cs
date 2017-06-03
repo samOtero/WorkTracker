@@ -14,10 +14,19 @@ namespace WorkTracker
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
             routes.MapRoute(
+               name: "Dashboard",
+               url: "Home/Dashboard/{userFilter}",
+               defaults: new { controller = "Home", action = "Dashboard", userFilter = UrlParameter.Optional },
+               constraints: new {userFilter = @"\d+"}
+           );
+
+            routes.MapRoute(
                 name: "Default",
                 url: "{controller}/{action}/{id}",
                 defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }
             );
+
+           
         }
     }
 }

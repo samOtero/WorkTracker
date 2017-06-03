@@ -16,15 +16,18 @@
 <div class="row">
     <h1>@(roleTitleName) Dashboard</h1>
     <div class="col-xs-12">
-        <a href="Create" type="button" class="btn btn-success">Create New</a>
+        <a href="/Home/Create" type="button" class="btn btn-success">Create New</a>
         @if (Model.userRole == Role.RoleTypes.Admin || Model.userRole == Role.RoleTypes.Owner)
         {
-            <a href="Report" type="button" class="btn btn-success">Reports</a>
+            <a href="/Home/Report" type="button" class="btn btn-success">Reports</a>
         }
         
     </div>
     <div class="col-xs-12">
         <h3>Daily Work Report Items</h3>
+    </div>
+    <div class="col-xs-12">
+        Filter: @Html.DropDownListFor(m => m.workItemUserFilter, Model.userFilterOptions, new { @class = "form-control", style = "display: inline", id = "userFilter" })
     </div>
 </div>
 <div class="row" style="padding-bottom:10px">
@@ -55,4 +58,10 @@
             style: 'box'
         });
     }
+
+    //On User Filter change then reload page showing only the work items for that user
+    $("#userFilter").change(function (e) {
+        var newFilterValue = $(this).val();
+        window.location.href = "/Home/Dashboard/" + newFilterValue;
+    });
 </script>

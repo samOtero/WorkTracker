@@ -46,7 +46,7 @@ namespace WorkTracker.Controllers
             var userID = (int)userService.GetMyID();
             var userRole = userService.GetUserRole(userID);
             var model = new WorkItemReportModel();
-            var workItemListModel = GetWorkItemListModel(userService, userID, userRole);
+            var workItemListModel = GetWorkItemListModel(userService, userID, userRole, 0);
 
             model.reportItems = new List<WorkItemReportItemModel>();
             foreach(var workItem in workItemListModel.workItems)
@@ -74,7 +74,7 @@ namespace WorkTracker.Controllers
             return View(model);
         }
 
-        public ActionResult Dashboard()
+        public ActionResult Dashboard(int userFilter=0)
         {
             if (!checkAuthentication())
             {
@@ -90,13 +90,36 @@ namespace WorkTracker.Controllers
             notificationModel.showViewAllBtn = true;
 
             //Create WorkItem Model
-            var workItemListModel = GetWorkItemListModel(userService, userID, userRole);
+            var workItemListModel = GetWorkItemListModel(userService, userID, userRole, userFilter);
+
+            //Get User Filter Items
+            var userFilterItems = new List<SelectListItem>();
+            var allowedUsers = userService.GetAllowedUsers(userID);
+            var allItem = new SelectListItem()
+            {
+                Selected = userFilter == 0 ? true : false,
+                Text = "All",
+                Value = "0"
+            };
+            userFilterItems.Add(allItem);
+            foreach(var users in allowedUsers)
+            {
+                var newItem = new SelectListItem()
+                {
+                    Text = users.FullName,
+                    Value = users.Id.ToString(),
+                    Selected = userFilter == users.Id ? true : false
+                };
+                userFilterItems.Add(newItem);
+            }
 
             //Create Dashboard Model
             var dashboardModel = new DashboardModel();
             dashboardModel.NotificationModel = notificationModel;
             dashboardModel.WorkItemListModel = workItemListModel;
             dashboardModel.userRole = userRole;
+            dashboardModel.userFilterOptions = userFilterItems;
+            dashboardModel.workItemUserFilter = userFilter;
 
             return View(dashboardModel);
         }
@@ -602,13 +625,23 @@ namespace WorkTracker.Controllers
         /// </summary>
         /// <param name=""></param>
         /// <returns></returns>
-        public WorkItemListModel GetWorkItemListModel(UserService service, int userID, Role.RoleTypes role)
+        public WorkItemListModel GetWorkItemListModel(UserService service, int userID, Role.RoleTypes role, int userFilter)
         {
             var model = new WorkItemListModel();
             model.workItems = new List<WorkItemModel>();
             //Get notifications tied to this user
             var allowedUsers = service.GetAllowedUsers(userID);
             var userIds = allowedUsers.Select(m => m.Id).ToList();
+
+            //Only show items for a specific user if the filter is set
+            if (userFilter != 0)
+            {
+                userIds = new List<int>()
+                {
+                    userFilter
+                };
+            }
+
             //Can current user approve work items
             var canApprove = CanApproveItem(role);
             //Get Items from user ids
