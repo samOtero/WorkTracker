@@ -46,7 +46,7 @@ namespace WorkTracker.Controllers
             var userID = (int)userService.GetMyID();
             var userRole = userService.GetUserRole(userID);
             var model = new WorkItemReportModel();
-            var workItemListModel = GetWorkItemListModel(userService, userID, userRole, 0);
+            var workItemListModel = GetWorkItemListModel(userService, userID, userRole, 0, 0);
 
             model.reportItems = new List<WorkItemReportItemModel>();
             foreach(var workItem in workItemListModel.workItems)
@@ -74,7 +74,7 @@ namespace WorkTracker.Controllers
             return View(model);
         }
 
-        public ActionResult Dashboard(int userFilter=0)
+        public ActionResult Dashboard(int userFilter=0, int paidFilter=2)
         {
             if (!checkAuthentication())
             {
@@ -90,7 +90,7 @@ namespace WorkTracker.Controllers
             notificationModel.showViewAllBtn = true;
 
             //Create WorkItem Model
-            var workItemListModel = GetWorkItemListModel(userService, userID, userRole, userFilter);
+            var workItemListModel = GetWorkItemListModel(userService, userID, userRole, userFilter, paidFilter);
 
             //Get User Filter Items
             var userFilterItems = new List<SelectListItem>();
@@ -113,6 +113,29 @@ namespace WorkTracker.Controllers
                 userFilterItems.Add(newItem);
             }
 
+            //Get Paid Status Filter Items
+            var paidFilterItems = new List<SelectListItem>()
+            {
+                new SelectListItem()
+                {
+                    Selected = paidFilter == 0 ? true : false,
+                    Text = "All",
+                    Value = "0"
+                },
+                new SelectListItem()
+                {
+                    Selected = paidFilter == 1 ? true : false,
+                    Text = "Paid",
+                    Value = "1"
+                },
+                  new SelectListItem()
+                {
+                    Selected = paidFilter == 2 ? true : false,
+                    Text = "Not Paid",
+                    Value = "2"
+                }
+            };
+
             //Create Dashboard Model
             var dashboardModel = new DashboardModel();
             dashboardModel.NotificationModel = notificationModel;
@@ -120,6 +143,8 @@ namespace WorkTracker.Controllers
             dashboardModel.userRole = userRole;
             dashboardModel.userFilterOptions = userFilterItems;
             dashboardModel.workItemUserFilter = userFilter;
+            dashboardModel.workItemPaidStatusFilter = paidFilter;
+            dashboardModel.paidStatusFilterOptions = paidFilterItems;
 
             return View(dashboardModel);
         }
@@ -625,7 +650,7 @@ namespace WorkTracker.Controllers
         /// </summary>
         /// <param name=""></param>
         /// <returns></returns>
-        public WorkItemListModel GetWorkItemListModel(UserService service, int userID, Role.RoleTypes role, int userFilter)
+        public WorkItemListModel GetWorkItemListModel(UserService service, int userID, Role.RoleTypes role, int userFilter=0, int paidStatusFilter=0)
         {
             var model = new WorkItemListModel();
             model.workItems = new List<WorkItemModel>();
@@ -654,6 +679,14 @@ namespace WorkTracker.Controllers
             WorkItemModel itemModel;
             foreach (var item in items)
             {
+                //Only show items for a specific paid Status if the filter is set
+                if (paidStatusFilter != 0)
+                {
+                    if (paidStatusFilter == 1 && item.Paid == false)
+                        continue;
+                    else if (paidStatusFilter == 2 && item.Paid == true)
+                        continue;
+                }
                 //Create status options for editing work item
                 var statusOptions = new SelectList(statusOptionsList, "Value", "Text", item.Status);
 
@@ -811,13 +844,13 @@ namespace WorkTracker.Controllers
                 validationResults.Add("Work Report Description is Required.");
             }
 
-            if (input.Cost == null || input.Cost <= 0)
+            if (input.Cost == null || input.Cost < 0)
             {
                 result = false;
                 validationResults.Add("Amount owed is missing or has an invalid value.");
             }
 
-            if (input.Hours == null || input.Hours <= 0)
+            if (input.Hours == null || input.Hours < 0)
             {
                 result = false;
                 validationResults.Add("Hours Worked is missing or has an invalid value.");
