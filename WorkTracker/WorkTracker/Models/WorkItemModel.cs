@@ -23,6 +23,7 @@ namespace WorkTracker.Models
         public bool forModal { get; set; }
         public bool paid { get; set; }
         public string paidString { get; set; }
+        public string hours { get; set; }
         public SelectList paidStatusOptions { get; set; }
         public SelectList statusOptions { get; set; }
         public SelectList assignOptions { get; set; }

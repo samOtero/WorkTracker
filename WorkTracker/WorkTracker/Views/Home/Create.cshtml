@@ -98,7 +98,7 @@
             $("#Cost").val(costValue);
             $.post(
                 {
-                    url: "CreateWorkItem",
+                    url: "/Home/CreateWorkItem",
                     data: $("#createForm").serialize(),
                     success: function (result) {
                         $("#createWorkItemBtn").val("Create Work Item");

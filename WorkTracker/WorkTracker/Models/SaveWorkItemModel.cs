@@ -15,5 +15,6 @@ namespace WorkTracker.Models
         public bool newPaid { get; set; }
         public string newDescription { get; set; }
         public bool isModal { get; set; }
+        public string newHours { get; set; }
     }
 }

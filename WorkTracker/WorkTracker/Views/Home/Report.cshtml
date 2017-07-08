@@ -108,7 +108,7 @@
         $("#saveModal").modal({ backdrop: "static" });
         var isModal = false;
         $.post({
-            url: "PayAllWorkItemsForUser",
+            url: "/Home/PayAllWorkItemsForUser",
             data: {
                 userID: userID
             },

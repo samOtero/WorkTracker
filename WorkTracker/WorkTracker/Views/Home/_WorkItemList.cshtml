@@ -178,7 +178,7 @@
         $("#saveModal").modal({ backdrop: "static" });
         var isModal = false;
         $.post({
-            url: "PaidWorkItem",
+            url: "/Home/PaidWorkItem",
             data: {
                 itemID: itemID,
                 newStatus: paid
@@ -206,7 +206,7 @@
         $("#saveModal").modal({ backdrop: "static" });
         var isModal = false;
         $.post({
-            url: "DenyWorkItem",
+            url: "/Home/DenyWorkItem",
             data: { itemID: itemID },
             success: function (result) {
                 $("#saveModal").modal("hide"); //Hide Save Modal once we have responce
@@ -230,7 +230,7 @@
         $("#saveModal").modal({ backdrop: "static" });
         var isModal = false;
         $.post({
-            url: "ApproveWorkItem",
+            url: "/Home/ApproveWorkItem",
             data: { itemID: itemID },
             success: function (result) {
                 $("#saveModal").modal("hide"); //Hide Save Modal once we have responce
@@ -254,7 +254,7 @@
         $("#saveModal").modal({ backdrop: "static" });
         var isModal = false;
         $.post({
-            url: "SaveWorkItem",
+            url: "/Home/SaveWorkItem",
             data: {
                 itemID: itemID,
                 newStatus: $("#statusOptions" + itemID).val(),
@@ -263,6 +263,7 @@
                 newCost: $("#costBox" + itemID).val(),
                 newPaid: $("#paidStatusOptions" + itemID).val(),
                 newDescription: $("#descriptionBox" + itemID).val(),
+                newHours: $("#hoursBox"+itemID).val(),
                 isModal: isModal,
                 '__RequestVerificationToken': $('input[name=__RequestVerificationToken]').val()
             },

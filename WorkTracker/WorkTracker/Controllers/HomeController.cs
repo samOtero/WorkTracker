@@ -171,6 +171,7 @@ namespace WorkTracker.Controllers
             var changedCost = false;
             var changedPaidStatus = false;
             var changedDescription = false;
+            var changedHours = false;
             var needUpdate = false;
 
             var originalStatus = item.Status;
@@ -179,6 +180,7 @@ namespace WorkTracker.Controllers
             var originalCost = item.Cost;
             var originaPaidStatus = item.Paid;
             var originalDescription = item.WorkDescription;
+            var originalHours = item.Hours;
 
             //DateCreated
             var dateNow = DateTimeOffset.Now;
@@ -247,6 +249,19 @@ namespace WorkTracker.Controllers
 
                 historyString += "Cost changed from \"" + originalCost.ToString("C") + "\" to \"" + formattedNewCost.ToString("C")+"\"";
                 item.Cost = formattedNewCost;
+            }
+
+            var newHours = Convert.ToInt32(input.newHours);
+            if (originalHours != newHours)
+            {
+                needUpdate = true;
+                changedHours = true;
+
+                if (!string.IsNullOrWhiteSpace(historyString))
+                    historyString += "<br/>";
+
+                historyString += "Hours changed from \"" + originalHours.ToString() + "\" to \"" + input.newHours + "\"";
+                item.Hours = newHours;
             }
 
             //if (originaPaidStatus != input.newPaid)
@@ -758,6 +773,7 @@ namespace WorkTracker.Controllers
             itemModel.paid = item.Paid;
             itemModel.paidString = GetPaidStatusText(item.Paid);
             itemModel.history = new List<string>();
+            itemModel.hours = item.Hours.ToString();
             item.ItemHistories = item.ItemHistories.OrderByDescending(m => m.CreatedOn).ToList(); //Order Item History by descending date
             foreach(var history in item.ItemHistories)
             {

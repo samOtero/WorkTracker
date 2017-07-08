@@ -82,7 +82,7 @@
                 backdrop: "static"
             });
             $.ajax({
-                url: "GetWorkItemPartial",
+                url: "/Home/GetWorkItemPartial",
                 data: {itemID: itemID},
                 success: function (result) {
                     $("#workItemModalBody").html(result.viewString);
