@@ -45,6 +45,8 @@ namespace WorkTracker.Models
         //User ID
         public int AssignedTo { get; set; }
 
+        public bool Deleted { get; set; }
+
         public virtual ItemStatus ItemStatu { get; set; }
 
         public virtual WorkItemStatus WorkItemStatu { get; set; }

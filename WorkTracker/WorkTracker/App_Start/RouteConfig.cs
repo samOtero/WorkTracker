@@ -20,6 +20,12 @@ namespace WorkTracker
             );
 
             routes.MapRoute(
+                name: "DeleteEmployee",
+                url: "Home/DeleteUser/{userId}",
+                defaults: new {controller = "Home", action = "DeleteUser"}
+             );
+
+            routes.MapRoute(
                 name: "Default",
                 url: "{controller}/{action}/{id}",
                 defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }

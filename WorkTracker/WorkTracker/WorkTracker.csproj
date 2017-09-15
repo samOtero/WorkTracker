@@ -205,6 +205,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\CreateViewModel.cs" />
+    <Compile Include="Models\EmployeeModel.cs" />
     <Compile Include="Models\DashboardModel.cs" />
     <Compile Include="Models\PaidStatusListModel.cs" />
     <Compile Include="Models\ItemStatusListModel.cs" />
@@ -454,6 +455,7 @@
     <Content Include="Views\Home\_saveModal.cshtml" />
     <Content Include="Views\Home\Report.cshtml" />
     <Content Include="Views\Home\_ReportItem.cshtml" />
+    <Content Include="Views\Home\Employees.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

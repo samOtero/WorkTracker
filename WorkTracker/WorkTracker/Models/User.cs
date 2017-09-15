@@ -33,6 +33,8 @@ namespace WorkTracker.Models
         [Required]
         public string AspNetUserId { get; set; }
 
+        public bool Deleted { get; set; }
+
         [NotMapped]
         public string FullName { get; set; }
 

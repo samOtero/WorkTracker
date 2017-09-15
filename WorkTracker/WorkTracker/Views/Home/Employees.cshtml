@@ -1,0 +1,65 @@
+﻿@using WorkTracker.Models
+@model EmployeeModel
+@{
+    ViewBag.Title = "Employees";
+}
+
+<style>
+    .userActive {
+        color: #3c763d;
+    }
+    .userDeleted {
+        color: #a94442;
+    }
+</style>
+
+<div class="row">
+    <h1>Employees</h1>
+    <h4>List of current Employees.</h4>
+</div>
+<div class="row">
+    <div class="col-xs-12" id="reportItemContainer">
+        <ul>
+             @foreach (var user in Model.users)
+             {
+                 string status = "<span class=\"userActive\">Active</span>";
+                 string action = "<a href=\"/Home/DeleteUser/" + user.Id + "\">Delete</a>";
+                 if (user.Deleted == true)
+                 {
+                     status = "<span class=\"userDeleted\">Deleted</span>";
+                     action = "<a href=\"/Home/DeleteUser/" + user.Id + "\">Restore</a>";
+                 }
+                 string userText = user.FullName + " - " + status +" - "+action;
+            <li>@(Html.Raw(userText))</li>
+            }
+        </ul>
+       
+    </div>
+</div>
+@Html.AntiForgeryToken()
+@Html.Partial("_saveModal")
+<script type="text/javascript" src="~/Scripts/jquery-notify.min.js"></script>
+<script>
+    //toggle Arrow when clicked
+    $(document).on('click', '.toggleArrowContainer', function () {
+        var myIcon = $(this).find('.arrowIcon');
+        myIcon.toggleClass("glyphicon-chevron-down glyphicon-chevron-up");
+
+        //try to toggle the collapse, this will fix the Iphone/Ipad issue with the collapse not working
+        var collapseTarget = $(this).data('target');
+        if (collapseTarget != null) {
+            $(collapseTarget).collapse('toggle');
+        }
+    });
+
+    //Create Notification on top of the window
+    function createNotification(text, type) {
+        $.notify.create(text, {
+            appendTo: '.body-content',
+            sticky: false,
+            adjustScroll: true,
+            type: type,
+            style: 'box'
+        });
+    }
+</script>

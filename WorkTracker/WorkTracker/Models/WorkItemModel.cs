@@ -20,6 +20,7 @@ namespace WorkTracker.Models
         public WorkItemStatus.Status workStatus { get; set; }
         public List<string> history { get; set; }
         public bool canApprove { get; set; }
+        public bool canEdit { get; set; }
         public bool forModal { get; set; }
         public bool paid { get; set; }
         public string paidString { get; set; }

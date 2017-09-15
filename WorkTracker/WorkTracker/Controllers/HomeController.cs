@@ -35,6 +35,25 @@ namespace WorkTracker.Controllers
 
             return View();
         }
+
+        /// <summary>
+        /// Employees page, list employees to be able to edit them, only accessible to admin and owners
+        /// </summary>
+        /// <returns></returns>
+        public ActionResult Employees()
+        {
+            if (!checkAuthentication())
+            {
+                return RedirectToAction("Index");
+            }
+            var model = new EmployeeModel();
+            var userService = new UserService();
+            var userID = (int)userService.GetMyID();
+            var assignedUsers = userService.GetAllowedUsers(userID, true); //Want to show even delete users here
+            model.users = assignedUsers;
+
+            return View(model);
+        }
         
         public ActionResult Report()
         {
@@ -72,6 +91,34 @@ namespace WorkTracker.Controllers
             }
 
             return View(model);
+        }
+
+        /// <summary>
+        /// Delete or Restore a delete users - reached by the Employee page which is accessible only to admin/owners
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public ActionResult DeleteUser(int userId)
+        {
+            if (!checkAuthentication())
+            {
+                return RedirectToAction("Index");
+            }
+            var user = new UserService().GetUser(userId);
+
+            //Reverse Delete status
+            user.Deleted = !user.Deleted;
+
+            //Save user
+            using (var context = new DbModels())
+            {
+                context.Users.Attach(user);
+                context.Entry(user).State = EntityState.Modified;
+                context.SaveChanges();
+            }
+
+            //Redirect back to Employee page
+            return RedirectToAction("Employees");
         }
 
         public ActionResult Dashboard(int userFilter=0, int paidFilter=2)
@@ -161,10 +208,13 @@ namespace WorkTracker.Controllers
             var service = new UserService();
             var userID = (int)service.GetMyID();
             var userRole = service.GetUserRole(userID);
-            if (userRole == Role.RoleTypes.Employee) //Employees can't edit items!
-                return Json(new { success = false }, JsonRequestBehavior.AllowGet);
 
             var item = service.GetWorkItemFromID(input.itemID);
+            var canApprove = CanApproveItem(userRole);
+            var canEdit = CanEditItem(userID, item, canApprove);
+            if (canEdit == false) //If this user can't edit then return false
+                return Json(new { success = false }, JsonRequestBehavior.AllowGet);
+
             var changedStatus = false;
             var changedDate = false;
             var changedAssignedTo = false;
@@ -365,6 +415,64 @@ namespace WorkTracker.Controllers
             }
             
             return GetWorkItemPartial(input.itemID,  input.isModal); //Get Html Partial for Work Item
+        }
+
+        /// <summary>
+        /// Mark Work Item as Deleted - only Admins and Owners can do this
+        /// </summary>
+        /// <param name="itemID"></param>
+        /// <returns></returns>
+        public JsonResult DeleteWorkItem(int itemID)
+        {
+            var service = new UserService();
+            var userID = (int)service.GetMyID();
+            var userRole = service.GetUserRole(userID);
+            if (userRole != Role.RoleTypes.Admin && userRole != Role.RoleTypes.Owner) //Employees can't delete item!
+                return Json(new { success = false }, JsonRequestBehavior.AllowGet);
+
+            var item = service.GetWorkItemFromID(itemID);
+
+            //If alreday delete then don't do anything
+            if (item.Deleted == true)
+                return Json(new { success = true }, JsonRequestBehavior.AllowGet);
+
+            item.Deleted = true;
+
+            //DateCreated
+            var dateNow = DateTimeOffset.Now;
+            var dateNowFormated = dateNow.ToString("M/d/yy h:mm tt");
+
+            //Get user's name
+            var user = service.GetUser(userID);
+            var userName = user.FullName;
+
+            var historyText = "Deleted by " + userName + " on " + dateNowFormated + ".";
+            try
+            {
+                using (var context = new DbModels())
+                {
+                    context.Items.Attach(item);
+                    context.Entry(item).State = EntityState.Modified;
+
+                    //Create Work Item History
+                    var newHistory = new ItemHistory()
+                    {
+                        itemId = item.Id,
+                        Note = historyText,
+                        CreatedBy = userID,
+                        CreatedOn = dateNow,
+                    };
+                    context.ItemHistories.Add(newHistory);
+                    context.SaveChanges();
+                }
+            }
+            catch (Exception e)
+            {
+                return Json(new { success = false }, JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(new { success = true }, JsonRequestBehavior.AllowGet);
+
         }
 
         /// <summary>
@@ -634,6 +742,8 @@ namespace WorkTracker.Controllers
             var userRole = service.GetUserRole(userID);
             var item = service.GetWorkItemFromID(itemID);
             var canApprove = CanApproveItem(userRole);
+
+            var canEdit = CanEditItem(userID, item, canApprove);
             
 
             var allowedUsers = service.GetAllowedUsers(userID);
@@ -649,7 +759,7 @@ namespace WorkTracker.Controllers
             //Create Allowed Users options for editing work item
             var assignedOptions = new SelectList(allowedUsers, "Id", "FullName", item.AssignedTo);
 
-            var itemModel = GetItemModelFromItem(item, canApprove);
+            var itemModel = GetItemModelFromItem(item, canApprove, canEdit);
             itemModel.statusOptions = statusOptions;
             itemModel.paidStatusOptions = paidOptions;
             itemModel.assignOptions = assignedOptions;
@@ -690,10 +800,16 @@ namespace WorkTracker.Controllers
             var statusOptionsList = getItemStatusOptions();
             var paidOptionsList = getPaidStatusOptions();
 
+            bool canEdit;
+
             //Create Work Item Model from list
             WorkItemModel itemModel;
             foreach (var item in items)
             {
+                //Hide any deleted items
+                if (item.Deleted == true)
+                    continue;
+
                 //Only show items for a specific paid Status if the filter is set
                 if (paidStatusFilter != 0)
                 {
@@ -711,7 +827,10 @@ namespace WorkTracker.Controllers
                 //Create Allowed Users options for editing work item
                 var assignedOptions = new SelectList(allowedUsers, "Id", "FullName", item.AssignedTo);
 
-                itemModel = GetItemModelFromItem(item, canApprove);
+                //Check if can edit
+                canEdit = CanEditItem(userID, item, canApprove);
+
+                itemModel = GetItemModelFromItem(item, canApprove, canEdit);
                 itemModel.statusOptions = statusOptions;
                 itemModel.paidStatusOptions = paidOptions;
                 itemModel.assignOptions = assignedOptions;
@@ -747,6 +866,11 @@ namespace WorkTracker.Controllers
             return paidStatusOptionsList;
         }
 
+        /// <summary>
+        /// Check to see if a certain role can approve/deny an item as well as change it's status
+        /// </summary>
+        /// <param name="role"></param>
+        /// <returns></returns>
         private bool CanApproveItem(Role.RoleTypes role)
         {
             var approve = false;
@@ -756,8 +880,28 @@ namespace WorkTracker.Controllers
 
             return approve;
         }
+        
+        /// <summary>
+        /// Check to see if a certain user can edit an item
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="item"></param>
+        /// <param name="canApprove"></param>
+        /// <returns></returns>
+        private bool CanEditItem(int userID, Item item, bool canApprove)
+        {
+            var edit = false;
 
-        private WorkItemModel GetItemModelFromItem(Item item, bool canApprove)
+            //If you can approve a work item then you can also edit it
+            if (canApprove == true)
+                edit = true;
+            else if (item.CreatedBy == userID && item.Status == (int)ItemStatus.Status.Pending) //If you created the work item and it is still waiting for approval then you can edit it
+                edit = true;
+
+            return edit;
+        }
+
+        private WorkItemModel GetItemModelFromItem(Item item, bool canApprove, bool canEdit)
         {
             var itemModel = new WorkItemModel();
             itemModel.itemID = item.Id;
@@ -780,6 +924,7 @@ namespace WorkTracker.Controllers
                 itemModel.history.Add(history.Note);
             }
             itemModel.canApprove = canApprove;
+            itemModel.canEdit = canEdit;
             return itemModel;
         }
 

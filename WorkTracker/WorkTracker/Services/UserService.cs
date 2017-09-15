@@ -227,7 +227,7 @@ namespace WorkTracker.Services
         /// </summary>
         /// <param name="myId">Id of user making the request</param>
         /// <returns></returns>
-        public List<User> GetAllowedUsers(int myId)
+        public List<User> GetAllowedUsers(int myId, bool showDeleted = false)
         {
             var allowedUsers = new List<User>();
             using (var context = new DbModels())
@@ -243,6 +243,7 @@ namespace WorkTracker.Services
                         if (oneUser != null)
                         {
                             allowedUsers.Add(oneUser);
+                            showDeleted = true; //Show a user himself, even if deleted
                         }
                     }
                     else if (myUserRoles == Role.RoleTypes.Owner) //If the user is an Owner add only himself and employees, NOT Admin Users
@@ -259,6 +260,11 @@ namespace WorkTracker.Services
                         var allUsers = context.Users.ToList();
                         allowedUsers.AddRange(allUsers);
                     }
+
+                    //Hide any deleted users if we need to
+                    if (showDeleted == false)
+                        allowedUsers = allowedUsers.Where(m => m.Deleted == false).ToList();
+
                 }
             }
             formatUser(allowedUsers);

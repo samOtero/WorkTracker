@@ -95,6 +95,13 @@
             paidWorkItem(itemID, isModal, false);
         });
 
+        //When Delete is pressed on the Delete Confirmation popover
+        $(document).on('click', '.workItemDeleteConfirmed', function () {
+            var itemID = $(this).data('itemid');
+            var isModal = $(this).data('ismodal');
+            deleteWorkItem(itemID, isModal);
+        });
+
     });
 
     //Set up confirmation popups for a particular Work Item
@@ -162,9 +169,51 @@
                 var isModal = $(this).data('ismodal');
                 var idName = $(this).parent().attr('id');
                 var baseName = "workItemNotPaid";
-                var YesBtn = '<button data-itemid="' + itemID + '" data-ismodal="' + isModal + '" class="btn btn-success ' + baseName + 'Confirmed"> Not Paid</button>';
+                var YesBtn = '<button data-itemid="' + itemID + '" data-ismodal="' + isModal + '" class="btn btn-success ' + baseName + 'Confirmed">Not Paid</button>';
                 var NoBtn = ' <button class="btn btn-danger" onclick="$(&quot;#' + idName + ' .' + baseName + 'Btn&quot;).popover(&quot;hide&quot;);">No</button>';
                 $(this).popover({ title: "Are you sure?", content: YesBtn + NoBtn, html: true, placement: "auto bottom" });
+            }
+        });
+
+        //Delete button
+        $(".workItemDeleteBtn").each(function () {
+            if ($(this).data('bs.popover')) {
+                //do nothing this button already has the popover
+            } else {
+                var itemID = $(this).data('itemid');
+                var isModal = $(this).data('ismodal');
+                var idName = $(this).parent().attr('id');
+                var baseName = "workItemDelete";
+                var YesBtn = '<button data-itemid="' + itemID + '" data-ismodal="' + isModal + '" class="btn btn-success ' + baseName + 'Confirmed">Delete</button>';
+                var NoBtn = ' <button class="btn btn-danger" onclick="$(&quot;#' + idName + ' .' + baseName + 'Btn&quot;).popover(&quot;hide&quot;);">No</button>';
+                $(this).popover({ title: "Are you sure?", content: YesBtn + NoBtn, html: true, placement: "auto bottom" });
+            }
+        });
+    }
+
+    //If the delete confirmation is made, call the ajax
+    function deleteWorkItem(itemID, isModal) {
+
+        //Open save modal to block any other input
+        $("#saveModal").modal({ backdrop: "static" });
+        var isModal = false;
+        $.post({
+            url: "/Home/DeleteWorkItem",
+            data: {
+                itemID: itemID,
+            },
+            success: function (result) {
+                $("#saveModal").modal("hide"); //Hide Save Modal once we have responce
+                if (result.success == true) {
+                    createNotification("Work Item deleted!", "success");
+                    $("#workItemContainer" + itemID).html("");
+                } else {
+                    createNotification("Error: Could not delete Work Item.", "error");
+                }
+            },
+            error: function (result) {
+                $("#saveModal").modal("hide"); //Hide Save Modal once we have responce
+                createNotification("Error: Could not delete Work Item.", "error");
             }
         });
     }

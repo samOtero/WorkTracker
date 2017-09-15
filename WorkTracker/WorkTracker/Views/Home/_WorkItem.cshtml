@@ -29,7 +29,7 @@
     <div class="panel panel-primary">
         <div class="panel-heading clearfix">
         <h4 class="pull-left">@(Model.title)</h4>
-        @if (Model.canApprove)
+        @if (Model.canEdit)
         {
             <div class="pull-right">
                 <button class="btn btn-success editWorkItemBtn" data-itemid="@(Model.itemID)">
@@ -47,10 +47,13 @@
             <li class="list-group-item @(paidPanelType)">Paid Status: @(Model.paidString)</li>
             <li class="list-group-item">Description: @(Model.description) <div class="editSection@(Model.itemID) hideMe">@Html.TextArea("descriptionBox"+Model.itemID, Model.description, new { @class="form-control", style = "display: inline" })</div></li>
             
-            @if (Model.canApprove == true)
+            @if (Model.canEdit == true)
             {
                 @*Save changes button - hidden but only add it if you can approve this work item*@
                 <li class="list-group-item editSection@(Model.itemID) hideMe" id="workItemEditLine@(Model.itemID)@(forModal)"><button data-itemid="@(Model.itemID)" data-ismodal="@(isModal)" class="btn btn-danger saveWorkItemBtn">Save Changes</button></li>
+            }
+            @if (Model.canApprove == true)
+            {
                 <li class="list-group-item" id="workItemApproveLine@(Model.itemID)@(forModal)">
                     @if (Model.approvalStatus == ItemStatus.Status.Pending || Model.approvalStatus == ItemStatus.Status.Denied)
                     {
@@ -68,6 +71,8 @@
                     {
                         <button data-itemid="@(Model.itemID)" data-ismodal="@(isModal)" class="btn btn-success workItemNotPaidBtn">Not Paid</button>
                     }
+                    <!--09/14/17 - Delete button for Work Item-->
+                    <button data-itemid="@(Model.itemID)" data-ismodal="@(isModal)" class="btn btn-danger workItemDeleteBtn">Delete</button>
                 </li>
                 
             }
