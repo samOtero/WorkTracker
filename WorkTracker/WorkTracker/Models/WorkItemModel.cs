@@ -28,5 +28,6 @@ namespace WorkTracker.Models
         public SelectList paidStatusOptions { get; set; }
         public SelectList statusOptions { get; set; }
         public SelectList assignOptions { get; set; }
+        public DateTimeOffset createdOn { get; set; }
     }
 }

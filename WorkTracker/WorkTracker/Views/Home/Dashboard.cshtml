@@ -17,6 +17,7 @@
     <h1>@(roleTitleName) Dashboard</h1>
     <div class="col-xs-12">
         <a href="/Home/Create" type="button" class="btn btn-success">Create New</a>
+        <a href="/Home/PaymentReport" type="button" class="btn btn-success">Payment Report</a>
         @if (Model.userRole == Role.RoleTypes.Admin || Model.userRole == Role.RoleTypes.Owner)
         {
             <a href="/Home/Report" type="button" class="btn btn-success">Reports</a>

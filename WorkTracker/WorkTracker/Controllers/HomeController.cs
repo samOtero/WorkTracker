@@ -54,6 +54,91 @@ namespace WorkTracker.Controllers
 
             return View(model);
         }
+
+        public ActionResult PaymentReport(int userFilter = 0)
+        {
+            if (!checkAuthentication())
+            {
+                return RedirectToAction("Index");
+            }
+            var userService = new UserService();
+            var userID = (int)userService.GetMyID();
+            var userRole = userService.GetUserRole(userID);
+            var model = new PaymentReportModel();
+
+            //By default select self
+            if (userFilter == 0)
+                userFilter = userID;
+
+            model.workItemUserFilter = userFilter;
+
+            //Get User Filter Items
+            var userFilterItems = new List<SelectListItem>();
+            var allowedUsers = userService.GetAllowedUsers(userID);
+            
+            foreach (var users in allowedUsers)
+            {
+                var newItem = new SelectListItem()
+                {
+                    Text = users.FullName,
+                    Value = users.Id.ToString(),
+                    Selected = userFilter == users.Id ? true : false
+                };
+                userFilterItems.Add(newItem);
+            }
+            model.userFilterOptions = userFilterItems;
+
+            var workItemListModel = GetWorkItemListModel(userService, userID, userRole, userFilter, 1);
+
+            model.reportItems = new List<WorkItemReportItemModel>();
+
+            if (workItemListModel.workItems.Count == 0)
+                return View(model);
+
+            //Sort by created date
+            workItemListModel.workItems = workItemListModel.workItems.OrderBy(m => m.createdOn).ToList();
+
+            var lastDateNeeded = workItemListModel.workItems.OrderByDescending(m => m.createdOn).FirstOrDefault().createdOn;
+
+            var startDate = new DateTime(2017, 5, 14);
+            var secondDate = startDate.AddDays(14);
+            var currentWeek = 1;
+            while(startDate <= lastDateNeeded)
+            {
+                foreach (var workItem in workItemListModel.workItems)
+                {
+                    if (workItem.createdOn < startDate || workItem.createdOn >= secondDate)
+                        continue;
+                    
+                    var reportItem = model.reportItems.Where(m => m.userId == currentWeek).FirstOrDefault();
+                    if (reportItem == null)
+                    {
+                        reportItem = new WorkItemReportItemModel()
+                        {
+                            userId = currentWeek,
+                            userFullName = startDate.ToString("MM/dd/yy") + " - " + secondDate.ToString("MM/dd/yy"),
+                            workItems = new List<WorkItemModel>(),
+                            totalOwed = 0
+                        };
+                        model.reportItems.Add(reportItem);
+                    }
+                    if (workItem.paid == true)
+                    {
+                        reportItem.totalOwed += Convert.ToDouble(workItem.cost.Replace("$", ""));
+                        reportItem.workItems.Add(workItem);
+                    }
+                }
+
+                startDate = secondDate;
+                secondDate = startDate.AddDays(14);
+                currentWeek++;
+            }
+
+            //Order report by latest first
+            model.reportItems = model.reportItems.OrderByDescending(m => m.userId).ToList();
+
+            return View(model);
+        }
         
         public ActionResult Report()
         {
@@ -834,6 +919,7 @@ namespace WorkTracker.Controllers
                 itemModel.statusOptions = statusOptions;
                 itemModel.paidStatusOptions = paidOptions;
                 itemModel.assignOptions = assignedOptions;
+                itemModel.createdOn = item.CreatedOn;
                 model.workItems.Add(itemModel);
             }
             return model;

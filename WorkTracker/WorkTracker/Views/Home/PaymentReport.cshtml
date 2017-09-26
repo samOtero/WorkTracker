@@ -1,0 +1,74 @@
+﻿@using WorkTracker.Models
+@model PaymentReportModel
+@{
+    ViewBag.Title = "Payment Report";
+}
+<style>
+    .list-group-item-success {
+        color: #3c763d;
+        background-color: #dff0d8;
+    }
+    .list-group-item-danger {
+        color: #a94442;
+        background-color: #f2dede;
+    }
+    .list-group-item-warning {
+        color: #8a6d3b;
+        background-color: #fcf8e3;
+    }
+    .hideMe {
+        display:none;
+    }
+    .showMeInline {
+        display:inline;
+    }
+    li.showMeInline {
+        display:block;
+    }
+    .popover-title {
+        color:black !important;
+    }
+</style>
+<div class="row">
+    <h1>Payment Report</h1>
+    <h4>Showing payments received.</h4>
+    <div class="col-xs-12" style="padding-bottom:10px">
+        User: @Html.DropDownListFor(m => m.workItemUserFilter, Model.userFilterOptions, new { @class = "form-control", style = "display: inline", id = "userFilter" })
+    </div>
+</div>
+<div class="row">
+    <div class="col-xs-12" id="reportItemContainer">
+        @{ bool haveReportItems = false; }
+        @foreach (var item in Model.reportItems)
+        {
+            if (item.totalOwed > 0)
+            {
+                haveReportItems = true;
+                <div class="col-md-6" id="reportItemContainer@(item.userId)">
+                    @Html.Partial("_PaymentReportItem", item)
+                </div>
+            }
+        }
+        @if(haveReportItems == false)
+        {
+            @:No money owed to any Employee. Woohoo!
+        }
+    </div>
+</div>
+@Html.AntiForgeryToken()
+<script type="text/javascript" src="~/Scripts/jquery-notify.min.js"></script>
+<script>
+
+    //Change the page to activate the new filter
+    function setFilter() {
+        var userFilter = $("#userFilter").val();
+        window.location.href = "/Home/PaymentReport/" + userFilter;
+    }
+
+    $(document).ready(function () {
+        //On User Filter change then reload page showing only the work items for that user
+        $("#userFilter").change(function (e) {
+            setFilter();
+        });        
+    });
+</script>

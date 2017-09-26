@@ -213,6 +213,7 @@
     <Compile Include="Models\NotificationStatus.cs" />
     <Compile Include="Models\SaveWorkItemModel.cs" />
     <Compile Include="Models\WorkItemReportItemModel.cs" />
+    <Compile Include="Models\PaymentReportModel.cs" />
     <Compile Include="Models\WorkItemReportModel.cs" />
     <Compile Include="Models\WorkItemListModel.cs" />
     <Compile Include="Models\WorkItemModel.cs" />
@@ -456,6 +457,8 @@
     <Content Include="Views\Home\Report.cshtml" />
     <Content Include="Views\Home\_ReportItem.cshtml" />
     <Content Include="Views\Home\Employees.cshtml" />
+    <Content Include="Views\Home\PaymentReport.cshtml" />
+    <Content Include="Views\Home\_PaymentReportItem.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
